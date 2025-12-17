@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.t4app.t4syncwave.PermissionUtil;
-import com.t4app.t4syncwave.PlaybackManager;
 import com.t4app.t4syncwave.events.PlaybackEvent;
 import com.t4app.t4syncwave.events.PlaybackEventListener;
 import com.t4app.t4syncwave.events.PlaybackViewEvent;

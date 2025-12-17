@@ -1,4 +1,4 @@
-package com.t4app.t4syncwave;
+package com.t4app.t4syncwave.viewmodel;
 
 import android.content.Context;
 import android.util.Log;

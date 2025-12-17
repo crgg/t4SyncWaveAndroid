@@ -4,6 +4,11 @@ public class ApiConfig {
     public static final String WEB_SOCKET_URL = "wss://t4videocall.t4ever.com/sfu/ws";
     public static final String BASE_URL = "https://t4videocall.t4ever.com/";
 
+    public static final String LOGIN_URL = "api/auth/login";
+    public static final String REGISTER_URL = "api/auth/register";
+
+
     public static final String UPLOAD_AUDIO = "api/audio/upload";
+    public static final String GET_GROUPS = "api/groups/list";
     public static final String GET_AUDIO_LIST = "api/audio/list";
 }

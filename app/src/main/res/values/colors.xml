@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="black">#FF000000</color>
+    <color name="soft_black">#222222</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="background">#FFFFFFFF</color>
 
-
+    <color name="text_color">#292727</color>
+    <color name="sign_in_color">#415A77</color>
     <color name="primary_color">#DBA851</color>
+    <color name="secondary_color">#CB9840</color>
+    <color name="primary_color_light">#E2BA74</color>
     <color name="button_color">#1063AB</color>
     <color name="red">#AB1010</color>
     <color name="gray_hint">#7C7A7A</color>
+    <color name="green_success">#6AB91B</color>
 
 </resources>

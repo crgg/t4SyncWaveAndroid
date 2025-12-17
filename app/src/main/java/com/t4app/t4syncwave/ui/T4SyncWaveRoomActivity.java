@@ -1,4 +1,4 @@
-package com.t4app.t4syncwave;
+package com.t4app.t4syncwave.ui;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -21,8 +21,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.t4app.t4syncwave.AppController;
+import com.t4app.t4syncwave.FileUtils;
+import com.t4app.t4syncwave.MusicAdapter;
+import com.t4app.t4syncwave.PermissionUtil;
+import com.t4app.t4syncwave.SessionManager;
+import com.t4app.t4syncwave.viewmodel.PlaybackManager;
+import com.t4app.t4syncwave.R;
 import com.t4app.t4syncwave.conection.ApiServices;
-import com.t4app.t4syncwave.conection.RetrofitClient;
 import com.t4app.t4syncwave.databinding.ActivityMainBinding;
 import com.t4app.t4syncwave.events.PlaybackEvent;
 import com.t4app.t4syncwave.events.PlaybackViewEvent;
@@ -41,7 +47,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class T4SyncWaveMainActivity extends AppCompatActivity {
+public class T4SyncWaveRoomActivity extends AppCompatActivity {
     private static final String TAG = "MAIN_ACTIVITY";
     private ActivityMainBinding binding;
 
@@ -156,19 +162,20 @@ public class T4SyncWaveMainActivity extends AppCompatActivity {
 
         binding.selectAudioBtn.setOnClickListener(view -> openAudioPicker());
 
-        binding.connectBtn.setOnClickListener(view -> {
-            String roomName  = binding.roomNameEt.getText().toString();
-            String username  = binding.usernameEt.getText().toString();
-
-            if (!roomName.isEmpty() && !username.isEmpty()){
-                viewModel.processInput(new PlaybackViewEvent.Connect(roomName, username));
-            }
-
-        });
-
-        binding.disconnectBtn.setOnClickListener(view -> {
+        binding.disconnectRoom.setOnClickListener(view -> {
             viewModel.processInput(PlaybackViewEvent.Disconnect.INSTANCE);
+            finish();//TODO:CHANGE THIS LOGIC FINISH IN INCOMING EVENT
         });
+
+        binding.back.setOnClickListener(view -> finish());
+
+        if (getIntent() != null){
+            String roomName = getIntent().getStringExtra("roomName");
+            String username = getIntent().getStringExtra("userName");
+
+            binding.roomName.setText(roomName);
+            viewModel.processInput(new PlaybackViewEvent.Connect(roomName, username));
+        }
 
     }
 
@@ -184,9 +191,7 @@ public class T4SyncWaveMainActivity extends AppCompatActivity {
 
                 PlaybackEvent.Connected connected = (PlaybackEvent.Connected) playbackEvent;
                 room = connected.getRoom();
-
-                binding.connectBtn.setVisibility(View.GONE);
-                binding.disconnectBtn.setVisibility(View.VISIBLE);
+                binding.disconnectRoom.setVisibility(View.VISIBLE);
 
             }else if (playbackEvent instanceof PlaybackEvent.UrlChanged) {
 
@@ -206,7 +211,6 @@ public class T4SyncWaveMainActivity extends AppCompatActivity {
     private void handleRemoteParticipantEvent(PlaybackEvent.RemoteParticipantEvent event){
         if (event instanceof PlaybackEvent.RemoteParticipantEvent.UserJoined){
             PlaybackEvent.RemoteParticipantEvent.UserJoined userJoined = (PlaybackEvent.RemoteParticipantEvent.UserJoined) event;
-            binding.participants.setText("Remote Participant Joined " + userJoined.getName());
 
             if (iAmHost){
                 viewModel.processInput(new PlaybackViewEvent.ChangeState(state));
@@ -262,7 +266,7 @@ public class T4SyncWaveMainActivity extends AppCompatActivity {
     }
 
     private void getMusicList(){
-        ApiServices apiServices = RetrofitClient.getRetrofitClient().create(ApiServices.class);
+        ApiServices apiServices = AppController.getApiServices();
         Call<List<MusicItem>> call = apiServices.getAudioList();
         call.enqueue(new Callback<>() {
             @Override
@@ -287,7 +291,7 @@ public class T4SyncWaveMainActivity extends AppCompatActivity {
     private void uploadAudio(Uri uri) throws IOException {
         MultipartBody.Part audioPart = FileUtils.createAudioPart(this, uri, "file");
 
-        ApiServices apiServices = RetrofitClient.getRetrofitClient().create(ApiServices.class);
+        ApiServices apiServices = AppController.getApiServices();
         Call<AudioUploadResponse> call = apiServices.uploadFile(audioPart);
         call.enqueue(new Callback<>() {
             @Override
