@@ -2,7 +2,6 @@ package com.t4app.t4syncwave;
 
 import android.util.Log;
 
-import com.t4app.t4syncwave.events.PlaybackEvent;
 import com.t4app.t4syncwave.model.PlaybackState;
 import com.t4app.t4syncwave.model.Room;
 
@@ -55,7 +54,21 @@ public class SfuWebSocketManager {
         }
     }
 
+    public void sendChangeUrl(String url, Room room) {
+        try {
+            JSONObject json = new JSONObject();
 
+            json.put("type", "room-url");
+            json.put("room", room.getRoomName());
+            json.put("username", room.getUserName());
+            json.put("url", url);
+
+            sfuClient.send(json.toString());
+
+        } catch (Exception e) {
+            Log.e(TAG, "sendPlaybackState error", e);
+        }
+    }
 
     private boolean canSend() {
         return sfuClient != null && sfuClient.isConnected();

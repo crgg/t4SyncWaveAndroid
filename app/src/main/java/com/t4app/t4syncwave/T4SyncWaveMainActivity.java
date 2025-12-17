@@ -1,6 +1,7 @@
 package com.t4app.t4syncwave;
 
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -18,19 +19,36 @@ import android.widget.TextView;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.gson.JsonObject;
+import com.t4app.t4syncwave.conection.ApiServices;
+import com.t4app.t4syncwave.conection.RetrofitClient;
 import com.t4app.t4syncwave.databinding.ActivityMainBinding;
 import com.t4app.t4syncwave.events.PlaybackEvent;
 import com.t4app.t4syncwave.events.PlaybackViewEvent;
+import com.t4app.t4syncwave.model.AudioUploadResponse;
 import com.t4app.t4syncwave.model.PlaybackState;
 import com.t4app.t4syncwave.model.Room;
 import com.t4app.t4syncwave.viewmodel.PlaybackViewModel;
 import com.t4app.t4syncwave.viewmodel.PlaybackViewModelFactory;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class T4SyncWaveMainActivity extends AppCompatActivity {
     private static final String TAG = "MAIN_ACTIVITY";
@@ -44,7 +62,6 @@ public class T4SyncWaveMainActivity extends AppCompatActivity {
     private MediaPlayer mediaPlayer;
     private Handler handler = new Handler();
     private boolean isPlaying = false;
-    private Uri audioUri;
     private boolean isPrepared = false;
 
     private PlaybackState state;
@@ -61,7 +78,11 @@ public class T4SyncWaveMainActivity extends AppCompatActivity {
 
                             Uri audioUri = result.getData().getData();
                             if (audioUri != null) {
-                                setAudioUri(audioUri);
+                                try {
+                                    uploadAudio(audioUri);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
                             }
                         }
                     }
@@ -126,6 +147,9 @@ public class T4SyncWaveMainActivity extends AppCompatActivity {
                 binding.connectBtn.setVisibility(View.GONE);
                 binding.disconnectBtn.setVisibility(View.VISIBLE);
                 binding.selectAudioBtn.setVisibility(View.VISIBLE);
+            }else if (playbackEvent instanceof PlaybackEvent.UrlChanged) {
+                PlaybackEvent.UrlChanged urlChanged = (PlaybackEvent.UrlChanged) playbackEvent;
+                setAudioUrl(urlChanged.getUrl());
             }
         });
     }
@@ -165,26 +189,12 @@ public class T4SyncWaveMainActivity extends AppCompatActivity {
         audioPickerLauncher.launch(intent);
     }
 
-
-    public void setAudioUri(Uri uri) {
-        this.audioUri = uri;
-
-        binding.songName.setText(getFileName(this, uri));
-
-        initializeMediaPlayer();
-    }
-
-    private void initializeMediaPlayer() {
-        if (audioUri == null) {
-            return;
-        }
-
+    public void setAudioUrl(String url) {
         cleanupMediaPlayer();
 
         mediaPlayer = new MediaPlayer();
-
         try {
-            mediaPlayer.setDataSource(this, audioUri);
+            mediaPlayer.setDataSource(url);
             mediaPlayer.prepareAsync();
 
             mediaPlayer.setOnPreparedListener(mp -> {
@@ -194,20 +204,114 @@ public class T4SyncWaveMainActivity extends AppCompatActivity {
                 seekBarAudio.setEnabled(true);
 
                 binding.selectAudioBtn.setVisibility(View.VISIBLE);
-
             });
 
             mediaPlayer.setOnCompletionListener(mp -> resetPlayer());
-
             mediaPlayer.setOnErrorListener((mp, what, extra) -> {
                 resetPlayer();
                 return false;
             });
 
         } catch (IOException e) {
-            Log.e(TAG, "initializeMediaPlayer: ", e);
+            Log.e(TAG, "setAudioUrl: ", e);
         }
     }
+
+    private void uploadAudio(Uri uri) throws IOException {
+        MultipartBody.Part audioPart = createAudioPart(this, uri, "file");
+
+        ApiServices apiServices = RetrofitClient.getRetrofitClient().create(ApiServices.class);
+        Call<AudioUploadResponse> call = apiServices.uploadFile(audioPart);
+        call.enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<AudioUploadResponse> call, @NonNull Response<AudioUploadResponse> response) {
+                if (response.isSuccessful()){
+                    AudioUploadResponse body = response.body();
+                    if (body != null){
+                        if (body.isOk()){
+                            viewModel.processInput(new PlaybackViewEvent.AudioChanged(body.getUrl()));
+//                            setAudioUrl(body.getUrl());
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<AudioUploadResponse> call, @NonNull Throwable throwable) {
+                Log.e(TAG, "onFailure: VALIDATE DATA" + throwable.getMessage());
+
+            }
+        });
+    }
+
+    public static MultipartBody.Part createAudioPart(
+            Context context,
+            Uri audioUri,
+            String formFieldName) throws IOException {
+
+        File audioFile = audioFileFromUri(context, audioUri);
+
+        String mimeType = context.getContentResolver().getType(audioUri);
+        if (mimeType == null) {
+            mimeType = "audio/*";
+        }
+
+        RequestBody requestBody =
+                RequestBody.create(audioFile, MediaType.parse(mimeType));
+
+        return MultipartBody.Part.createFormData(
+                formFieldName,
+                audioFile.getName(),
+                requestBody
+        );
+    }
+
+
+    public static File audioFileFromUri(Context context, Uri uri) throws IOException {
+        ContentResolver resolver = context.getContentResolver();
+
+        String fileName = getFileName(resolver, uri);
+        if (fileName == null) {
+            fileName = "audio_" + System.currentTimeMillis();
+        }
+
+        File outFile = new File(context.getCacheDir(), fileName);
+
+        try (InputStream in = resolver.openInputStream(uri);
+             OutputStream out = new FileOutputStream(outFile)) {
+
+            byte[] buffer = new byte[8 * 1024];
+            int len;
+            while ((len = in.read(buffer)) != -1) {
+                out.write(buffer, 0, len);
+            }
+        }
+
+        return outFile;
+    }
+
+    private static String getFileName(ContentResolver resolver, Uri uri) {
+        String result = null;
+
+        if ("content".equals(uri.getScheme())) {
+            try (Cursor cursor = resolver.query(uri, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    if (index != -1) {
+                        result = cursor.getString(index);
+                    }
+                }
+            }
+        }
+
+        if (result == null) {
+            result = uri.getLastPathSegment();
+        }
+
+        return result;
+    }
+
+
 
     private void setupAudioPlayer() {
         if (mediaPlayer != null) {

@@ -49,6 +49,11 @@ public class PlaybackViewModel extends ViewModel implements PlaybackEventListene
             playbackManager.connectRoom(room);
         } else if (event instanceof PlaybackViewEvent.Disconnect) {
 
+        }  else if (event instanceof PlaybackViewEvent.AudioChanged) {
+
+            PlaybackViewEvent.AudioChanged changeState = (PlaybackViewEvent.AudioChanged) event;
+            playbackManager.sendChangeAudioUrl(changeState.getAudioUrl());
+
         } else if (event instanceof PlaybackViewEvent.ChangeState) {
             PlaybackViewEvent.ChangeState changeState = (PlaybackViewEvent.ChangeState) event;
             playbackManager.sendChangeState(changeState.getState());

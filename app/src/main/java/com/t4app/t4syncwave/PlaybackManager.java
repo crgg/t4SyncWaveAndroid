@@ -66,6 +66,9 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
                 case "role":
                     handleUserRole(json);
                     break;
+                case "room-url":
+                    handleUrlChanged(json);
+                    break;
                 case "playback-state":
                     handleChangeState(json);
                     break;
@@ -104,8 +107,21 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
         }catch (Exception e){
             Log.e(TAG, "handleUserJoined: ", e);
         }
+    }
+
+    public void handleUrlChanged(JSONObject json){
+        try {
+            String room = json.optString("room");
+            String url = json.optString("url");
+
+            sendPlaybackEvent(new PlaybackEvent.UrlChanged(url));
+
+        }catch (Exception e){
+            Log.e(TAG, "handleUserJoined: ", e);
+        }
 
     }
+
 
     public void handleUserRole(JSONObject json){
         try {
@@ -158,6 +174,10 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
 
     public void sendChangeState(PlaybackState state){
         socketManager.sendPlaybackState(state);
+    }
+
+    public void sendChangeAudioUrl(String url){
+        socketManager.sendChangeUrl(url, room);
     }
 
     @Override

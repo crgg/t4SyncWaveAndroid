@@ -70,5 +70,18 @@ public class PlaybackEvent {
     }
 
 
+    public static class UrlChanged extends PlaybackEvent{
+        private final String url;
+
+        public UrlChanged(String url) {
+            this.url = url;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+    }
+
+
 
 }
