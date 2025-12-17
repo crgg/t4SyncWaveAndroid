@@ -50,8 +50,6 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
     public void handleWebSocketMessage(String text) {
         try {
             JSONObject json = new JSONObject(text);
-
-
             String type = json.optString("type");
             String roomName = json.optString("room", null);
 
@@ -65,9 +63,6 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
                     break;
                 case "role":
                     handleUserRole(json);
-                    break;
-                case "room-url":
-                    handleUrlChanged(json);
                     break;
                 case "playback-state":
                     handleChangeState(json);
@@ -109,30 +104,15 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
         }
     }
 
-    public void handleUrlChanged(JSONObject json){
-        try {
-            String room = json.optString("room");
-            String url = json.optString("url");
-
-            sendPlaybackEvent(new PlaybackEvent.UrlChanged(url));
-
-        }catch (Exception e){
-            Log.e(TAG, "handleUserJoined: ", e);
-        }
-
-    }
-
-
     public void handleUserRole(JSONObject json){
         try {
             String role = json.optString("role");
-            if (role.equalsIgnoreCase(room.getRoomName()) &&
-                    !role.equalsIgnoreCase(room.getUserName())){
+            if (role.equalsIgnoreCase("host")){
+                sendPlaybackEvent(PlaybackEvent.IAmHost.INSTANCE);
             }
         }catch (Exception e){
             Log.e(TAG, "handleUserJoined: ", e);
         }
-
     }
 
     public void handleChangeState(JSONObject json) {
@@ -140,10 +120,7 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
             String type = json.optString("type");
             String roomName = json.optString("room");
             String userName = json.optString("userName");
-            Log.d(TAG, "handleChangeState: 1");
-            if (userName.equalsIgnoreCase(room.getUserName())) return;
 
-            Log.d(TAG, "handleChangeState: 1");
             Double position = json.has("position") && !json.isNull("position")
                     ? json.optDouble("position")
                     : null;
@@ -164,11 +141,11 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
             if (state.getUserName().equalsIgnoreCase(room.getUserName())) {
                 return;
             }
-
-            sendPlaybackEvent(new PlaybackEvent.ChangeRemoteState(state));
+            Log.d(TAG, "IN HANDLE CHANGE STATE: ");
+            sendPlaybackEvent(new PlaybackEvent.RemoteParticipantEvent.ChangeRemoteState(state));
 
         } catch (Exception e) {
-            Log.e(TAG, "handleUserJoined", e);
+            Log.e(TAG, "CHANGE STATE ERROR ", e);
         }
     }
 
@@ -176,9 +153,6 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
         socketManager.sendPlaybackState(state);
     }
 
-    public void sendChangeAudioUrl(String url){
-        socketManager.sendChangeUrl(url, room);
-    }
 
     @Override
     public void onConnected() {

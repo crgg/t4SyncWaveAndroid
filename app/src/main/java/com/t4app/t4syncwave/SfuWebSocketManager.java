@@ -45,8 +45,6 @@ public class SfuWebSocketManager {
             }
 
             json.put("isPlaying", state.isPlaying());
-
-            Log.d(TAG, "sendPlaybackState: JSON " + json);
             sfuClient.send(json.toString());
 
         } catch (Exception e) {
@@ -54,21 +52,6 @@ public class SfuWebSocketManager {
         }
     }
 
-    public void sendChangeUrl(String url, Room room) {
-        try {
-            JSONObject json = new JSONObject();
-
-            json.put("type", "room-url");
-            json.put("room", room.getRoomName());
-            json.put("username", room.getUserName());
-            json.put("url", url);
-
-            sfuClient.send(json.toString());
-
-        } catch (Exception e) {
-            Log.e(TAG, "sendPlaybackState error", e);
-        }
-    }
 
     private boolean canSend() {
         return sfuClient != null && sfuClient.isConnected();

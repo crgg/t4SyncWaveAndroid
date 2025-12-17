@@ -5,6 +5,11 @@ import com.t4app.t4syncwave.model.Room;
 
 public class PlaybackEvent {
 
+    public static final class IAmHost extends PlaybackEvent{
+        public static final IAmHost INSTANCE = new IAmHost();
+        private IAmHost() {}
+    }
+
     public static abstract class RemoteParticipantEvent extends PlaybackEvent{
         private RemoteParticipantEvent() {}
     }

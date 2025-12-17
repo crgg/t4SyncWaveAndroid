@@ -22,16 +22,8 @@ public class PlaybackViewEvent {
     }
 
 
-    public static final class AudioChanged extends PlaybackViewEvent {
-        private final String audioUrl;
-
-        public AudioChanged(String audioUrl){
-            this.audioUrl = audioUrl;
-        }
-
-        public String getAudioUrl() {
-            return audioUrl;
-        }
+    public static final class AudioAdded extends PlaybackViewEvent {
+        public AudioAdded(){}
     }
 
     public static final class ChangeState extends PlaybackViewEvent{

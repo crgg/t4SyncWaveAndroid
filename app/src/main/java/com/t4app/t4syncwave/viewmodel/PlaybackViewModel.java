@@ -4,12 +4,11 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.t4app.t4syncwave.PermissionUtil;
-import com.t4app.t4syncwave.events.PlaybackEvent;
 import com.t4app.t4syncwave.PlaybackManager;
+import com.t4app.t4syncwave.events.PlaybackEvent;
 import com.t4app.t4syncwave.events.PlaybackEventListener;
 import com.t4app.t4syncwave.events.PlaybackViewEvent;
 import com.t4app.t4syncwave.events.SingleLiveEvent;
-import com.t4app.t4syncwave.model.PlaybackState;
 import com.t4app.t4syncwave.model.Room;
 
 public class PlaybackViewModel extends ViewModel implements PlaybackEventListener {
@@ -49,10 +48,10 @@ public class PlaybackViewModel extends ViewModel implements PlaybackEventListene
             playbackManager.connectRoom(room);
         } else if (event instanceof PlaybackViewEvent.Disconnect) {
 
-        }  else if (event instanceof PlaybackViewEvent.AudioChanged) {
+        }  else if (event instanceof PlaybackViewEvent.AudioAdded) {
 
-            PlaybackViewEvent.AudioChanged changeState = (PlaybackViewEvent.AudioChanged) event;
-            playbackManager.sendChangeAudioUrl(changeState.getAudioUrl());
+            //TODO: NOT NOW
+//            playbackManager.
 
         } else if (event instanceof PlaybackViewEvent.ChangeState) {
             PlaybackViewEvent.ChangeState changeState = (PlaybackViewEvent.ChangeState) event;
