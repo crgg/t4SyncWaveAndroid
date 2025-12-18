@@ -46,7 +46,7 @@ public class PlaybackViewModel extends ViewModel implements PlaybackEventListene
 
             playbackManager.connectRoom(room);
         } else if (event instanceof PlaybackViewEvent.Disconnect) {
-
+            playbackManager.sendLeft();
         }  else if (event instanceof PlaybackViewEvent.AudioAdded) {
 
             //TODO: NOT NOW

@@ -40,6 +40,5 @@ public class PlaybackViewEvent {
     public static final class Disconnect extends PlaybackViewEvent{
         public static final Disconnect INSTANCE = new Disconnect();
         public Disconnect() {}
-
     }
 }

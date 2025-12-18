@@ -1,6 +1,5 @@
 package com.t4app.t4syncwave.adapter;
 
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,29 +9,26 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.t4app.t4syncwave.ListenersUtils;
 import com.t4app.t4syncwave.R;
-import com.t4app.t4syncwave.model.RoomResponse;
+import com.t4app.t4syncwave.model.GroupItem;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.RoomViewHolder> {
+public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.RoomViewHolder> {
 
-    public interface OnRoomClickListener {
-        void onRoomClick(RoomResponse room);
-    }
+    private List<GroupItem> rooms = new ArrayList<>();
+    private final ListenersUtils.OnRoomClickListener listener;
 
-    private List<RoomResponse> rooms = new ArrayList<>();
-    private final OnRoomClickListener listener;
-
-    public void updateList(List<RoomResponse> list) {
+    public void updateList(List<GroupItem> list) {
         rooms.clear();
         rooms.addAll(list);
         notifyDataSetChanged();
     }
 
 
-    public RoomsAdapter(OnRoomClickListener listener) {
+    public GroupAdapter(ListenersUtils.OnRoomClickListener listener) {
         this.listener = listener;
     }
 
@@ -45,22 +41,9 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.RoomViewHold
 
     @Override
     public void onBindViewHolder(@NonNull RoomViewHolder holder, int position) {
-        RoomResponse room = rooms.get(position);
+        GroupItem room = rooms.get(position);
 
         holder.roomNameTv.setText(room.getName());
-        holder.roomCodeTv.setText("Code: " + room.getCode());
-
-        holder.roomStatusTv.setText(room.isActive() ? "Active" : "Inactive");
-        holder.roomStatusTv.setTextColor(
-                room.isActive() ? Color.GREEN : Color.GRAY
-        );
-
-
-        holder.playStatusIv.setImageResource(
-                room.isPlaying()
-                        ? R.drawable.ic_pause
-                        : R.drawable.ic_play
-        );
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
@@ -86,6 +69,13 @@ public class RoomsAdapter extends RecyclerView.Adapter<RoomsAdapter.RoomViewHold
             roomStatusTv = itemView.findViewById(R.id.roomStatusTv);
             playStatusIv = itemView.findViewById(R.id.playStatusIv);
         }
+    }
+
+    public void addGroup(GroupItem group) {
+        if (group == null) return;
+
+        rooms.add(group);
+        notifyItemInserted(rooms.size() - 1);
     }
 }
 

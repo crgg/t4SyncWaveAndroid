@@ -7,7 +7,7 @@
     android:background="@drawable/bg_login_gradient"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.RegisterActivity">
+    tools:context=".ui.auth.RegisterActivity">
 
     <androidx.cardview.widget.CardView
         android:fitsSystemWindows="true"

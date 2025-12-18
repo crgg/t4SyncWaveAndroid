@@ -1,4 +1,4 @@
-package com.t4app.t4syncwave.ui;
+package com.t4app.t4syncwave.ui.auth;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,6 +14,8 @@ import com.t4app.t4syncwave.SessionManager;
 import com.t4app.t4syncwave.conection.ApiServices;
 import com.t4app.t4syncwave.conection.model.LoginResponse;
 import com.t4app.t4syncwave.databinding.ActivityRegisterBinding;
+import com.t4app.t4syncwave.ui.room.RoomActivity;
+import com.t4app.t4syncwave.ui.main.T4SyncWaveMainActivity;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -122,7 +124,7 @@ public class RegisterActivity extends AppCompatActivity {
                     LoginResponse body = response.body();
                     if (body != null){
                         if (body.getMessage() != null && body.getMessage().contains("Login successful")) {
-                            Intent intent = new Intent(RegisterActivity.this, T4SyncWaveRoomActivity.class);
+                            Intent intent = new Intent(RegisterActivity.this, RoomActivity.class);
                             SessionManager sessionManager = SessionManager.getInstance();
                             sessionManager.saveUserDetails(
                                     body.getUser().getId(),

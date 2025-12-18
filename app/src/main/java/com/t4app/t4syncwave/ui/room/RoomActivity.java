@@ -1,4 +1,4 @@
-package com.t4app.t4syncwave.ui;
+package com.t4app.t4syncwave.ui.room;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -23,9 +23,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.t4app.t4syncwave.AppController;
 import com.t4app.t4syncwave.FileUtils;
-import com.t4app.t4syncwave.MusicAdapter;
+import com.t4app.t4syncwave.adapter.MusicAdapter;
 import com.t4app.t4syncwave.PermissionUtil;
-import com.t4app.t4syncwave.SessionManager;
 import com.t4app.t4syncwave.viewmodel.PlaybackManager;
 import com.t4app.t4syncwave.R;
 import com.t4app.t4syncwave.conection.ApiServices;
@@ -47,7 +46,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class T4SyncWaveRoomActivity extends AppCompatActivity {
+public class RoomActivity extends AppCompatActivity {
     private static final String TAG = "MAIN_ACTIVITY";
     private ActivityMainBinding binding;
 
@@ -78,11 +77,11 @@ public class T4SyncWaveRoomActivity extends AppCompatActivity {
 
                     Uri audioUri = result.getData().getData();
                     if (audioUri != null) {
-                        try {
-                            uploadAudio(audioUri);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
+//                        try {
+////                            uploadAudio(audioUri);
+//                        } catch (IOException e) {
+//                            throw new RuntimeException(e);
+//                        }
                     }
                 }
             }
@@ -126,15 +125,15 @@ public class T4SyncWaveRoomActivity extends AppCompatActivity {
             @Override
             public void onPlay(MusicItem item, int position) {
                 if (iAmHost){
-                    if (item.getUrl().equalsIgnoreCase(songListening)){
+                    if (item.getFileUrl().equalsIgnoreCase(songListening)){
                         startAudioPlayback();
                     }else{
-                        prepareAudio(item.getUrl(), true);
+                        prepareAudio(item.getFileUrl(), true);
                         state = new PlaybackState.Builder(
                                 "playback-state",
                                 room.getRoomName(),
                                 room.getUserName(),
-                                item.getDuration())
+                                item.getDurationMs())
                                 .setPlaying(true)
                                 .setPosition((double) position)
                                 .build();
@@ -164,7 +163,6 @@ public class T4SyncWaveRoomActivity extends AppCompatActivity {
 
         binding.disconnectRoom.setOnClickListener(view -> {
             viewModel.processInput(PlaybackViewEvent.Disconnect.INSTANCE);
-            finish();//TODO:CHANGE THIS LOGIC FINISH IN INCOMING EVENT
         });
 
         binding.back.setOnClickListener(view -> finish());
@@ -198,6 +196,8 @@ public class T4SyncWaveRoomActivity extends AppCompatActivity {
                 PlaybackEvent.UrlChanged urlChanged = (PlaybackEvent.UrlChanged) playbackEvent;
 //                setAudioUrl(urlChanged.getUrl());
 
+            }else if (playbackEvent instanceof PlaybackEvent.Disconnected) {
+                finish();
             }else if (playbackEvent instanceof PlaybackEvent.IAmHost) {
                 iAmHost = true;
                 setupListeners();
@@ -223,13 +223,13 @@ public class T4SyncWaveRoomActivity extends AppCompatActivity {
                 if (state != null){
                     if (state.getTimestamp() != remoteState.getState().getTimestamp()){
                         if (mediaPlayer != null){
-                            mediaPlayer.seekTo(remoteState.getState().getTimestamp());
+                            mediaPlayer.seekTo((int) remoteState.getState().getTimestamp());
                             if (isPlaying) {
                                 handler.postDelayed(updateProgress, 100);
                             }
                         }
                         state = state.copy().
-                                setTimestamp(remoteState.getState().getTimestamp()).
+                                setTimestamp((int) remoteState.getState().getTimestamp()).
                                 build();
                     }
                 }else{
@@ -239,8 +239,8 @@ public class T4SyncWaveRoomActivity extends AppCompatActivity {
 
             int pos = remoteState.getState().getPosition().intValue();
             if (mediaPlayer != null){
-                if (!adapter.getSong(pos).getUrl().equalsIgnoreCase(songListening)){
-                    prepareAudio(adapter.getSong(pos).getUrl(), remoteState.getState().isPlaying());
+                if (!adapter.getSong(pos).getFileUrl().equalsIgnoreCase(songListening)){
+                    prepareAudio(adapter.getSong(pos).getFileUrl(), remoteState.getState().isPlaying());
                 }
                 if (remoteState.getState().isPlaying()){
                     mediaPlayer.start();
@@ -259,7 +259,7 @@ public class T4SyncWaveRoomActivity extends AppCompatActivity {
                 Log.d(TAG, "SYNC PLAY PAUSE STATE: " + remoteState.getState().isPlaying());
                 adapter.setRemotePlaying(pos, remoteState.getState().isPlaying());
             }else{
-                prepareAudio(adapter.getSong(pos).getUrl(), remoteState.getState().isPlaying());
+                prepareAudio(adapter.getSong(pos).getFileUrl(), remoteState.getState().isPlaying());
             }
 
         }
@@ -281,42 +281,6 @@ public class T4SyncWaveRoomActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(@NonNull Call<List<MusicItem>> call, @NonNull Throwable throwable) {
-                Log.e(TAG, "onFailure: VALIDATE DATA" + throwable.getMessage());
-
-            }
-        });
-    }
-
-
-    private void uploadAudio(Uri uri) throws IOException {
-        MultipartBody.Part audioPart = FileUtils.createAudioPart(this, uri, "file");
-
-        ApiServices apiServices = AppController.getApiServices();
-        Call<AudioUploadResponse> call = apiServices.uploadFile(audioPart);
-        call.enqueue(new Callback<>() {
-            @Override
-            public void onResponse(@NonNull Call<AudioUploadResponse> call, @NonNull Response<AudioUploadResponse> response) {
-                if (response.isSuccessful()){
-                    AudioUploadResponse body = response.body();
-                    if (body != null){
-                        if (body.isOk()){
-                            MusicItem musicItem = new MusicItem();
-                            musicItem.setId(body.getId());
-                            musicItem.setTitle(body.getTitle());
-                            musicItem.setDuration(body.getDuration());
-                            musicItem.setUrl(body.getUrl());
-                            adapter.addSong(musicItem);
-
-                            //TODO: LOGICA PARA AGREGAR MUSICA NOT NOW
-                            viewModel.processInput(new PlaybackViewEvent.AudioAdded());
-//                            setAudioUrl(body.getUrl());
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<AudioUploadResponse> call, @NonNull Throwable throwable) {
                 Log.e(TAG, "onFailure: VALIDATE DATA" + throwable.getMessage());
 
             }

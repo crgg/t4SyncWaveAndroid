@@ -9,4 +9,18 @@
     <string name="your_password">Your password</string>
     <string name="remember_me">Remember me</string>
     <string name="already_have_an_account">Already have an account?</string>
+    <string name="no_groups_have_been_nadded_yet">No groups have been\nadded yet.</string>
+    <string name="sign_out">Sign out</string>
+    <string name="add_group">Add Group</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="groups">Groups</string>
+    <string name="add_member">Add member</string>
+    <string name="code">Code</string>
+    <string name="members">Members</string>
+    <string name="choose_a_track_to_start_listening_together">Choose a track to start listening together</string>
+    <string name="no_music_playing">No music playing</string>
+    <string name="no_music_has_been_added_yet">No music has been added yet.</string>
+    <string name="library">Library</string>
+    <string name="listener">Listener</string>
 </resources>

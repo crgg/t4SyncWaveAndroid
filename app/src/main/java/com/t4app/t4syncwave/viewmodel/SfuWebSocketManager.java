@@ -32,6 +32,22 @@ public class SfuWebSocketManager {
         }
     }
 
+    public void sendLeft(Room room) {
+        try {
+            if (!canSend()) return;
+
+            JSONObject json = new JSONObject();
+            json.put("type", "left");
+            json.put("room", room.getRoomName());
+            json.put("userName", room.getUserName());
+
+            sfuClient.send(json.toString());
+            Log.d(TAG, "LEFT enviado: " + json);
+        } catch (Exception e) {
+            Log.e(TAG, "Error creando/enviando LEFT", e);
+        }
+    }
+
     public void sendPlaybackState(PlaybackState state) {
         try {
             JSONObject json = new JSONObject();

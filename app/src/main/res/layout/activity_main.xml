@@ -7,7 +7,7 @@
     android:background="@color/white"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.T4SyncWaveRoomActivity">
+    tools:context=".ui.room.RoomActivity">
 
     <LinearLayout
         app:layout_constraintTop_toTopOf="parent"
@@ -15,9 +15,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:orientation="horizontal"
         android:id="@+id/header"
-        android:padding="10dp"
         android:gravity="center_vertical"
-        android:background="@color/primary_color"
+        android:background="@color/background"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -25,6 +24,7 @@
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/back"
             android:src="@drawable/ic_back"
+            android:tint="@color/primary_color"
             android:background="@null"
             android:layout_width="46dp"
             android:layout_height="46dp"/>

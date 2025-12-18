@@ -12,13 +12,36 @@ public class MusicItem implements Serializable {
     @SerializedName("title")
     private String title;
 
-    @SerializedName("duration")
-    private int duration;
+    @SerializedName("artist")
+    private String artist;
 
-    @SerializedName("url")
-    private String url;
+    @SerializedName("file_url")
+    private String fileUrl;
+
+    @SerializedName("duration_ms")
+    private long durationMs;
+
+    @SerializedName("added_by")
+    private String addedBy;
+
+    @SerializedName("uploaded_by")
+    private String uploadedBy;
+
+    @SerializedName("group_id")
+    private String groupId;
+
+    @SerializedName("position")
+    private Integer position;
 
     private boolean isPlaying;
+
+    public boolean isPlaying() {
+        return isPlaying;
+    }
+
+    public void setPlaying(boolean playing) {
+        isPlaying = playing;
+    }
 
     public String getId() {
         return id;
@@ -36,27 +59,59 @@ public class MusicItem implements Serializable {
         this.title = title;
     }
 
-    public int getDuration() {
-        return duration;
+    public String getArtist() {
+        return artist;
     }
 
-    public void setDuration(int duration) {
-        this.duration = duration;
+    public void setArtist(String artist) {
+        this.artist = artist;
     }
 
-    public String getUrl() {
-        return url;
+    public String getFileUrl() {
+        return fileUrl;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setFileUrl(String fileUrl) {
+        this.fileUrl = fileUrl;
     }
 
-    public boolean isPlaying() {
-        return isPlaying;
+    public long getDurationMs() {
+        return durationMs;
     }
 
-    public void setPlaying(boolean playing) {
-        isPlaying = playing;
+    public void setDurationMs(long durationMs) {
+        this.durationMs = durationMs;
+    }
+
+    public String getAddedBy() {
+        return addedBy;
+    }
+
+    public void setAddedBy(String addedBy) {
+        this.addedBy = addedBy;
+    }
+
+    public String getUploadedBy() {
+        return uploadedBy;
+    }
+
+    public void setUploadedBy(String uploadedBy) {
+        this.uploadedBy = uploadedBy;
+    }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
+    }
+
+    public Integer getPosition() {
+        return position;
+    }
+
+    public void setPosition(Integer position) {
+        this.position = position;
     }
 }

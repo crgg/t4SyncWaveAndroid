@@ -13,16 +13,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.T4SyncWave" >
         <activity
-            android:name=".ui.T4SyncWaveRoomActivity"
+            android:name=".ui.room.RoomActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.RegisterActivity"
+            android:name=".ui.auth.RegisterActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.LoginActivity"
+            android:name=".ui.auth.LoginActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.T4SyncWaveMainActivity"
+            android:name=".ui.main.T4SyncWaveMainActivity"
             android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

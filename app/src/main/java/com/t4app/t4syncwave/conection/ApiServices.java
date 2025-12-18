@@ -1,6 +1,8 @@
 package com.t4app.t4syncwave.conection;
 
-import com.google.gson.JsonObject;
+import com.t4app.t4syncwave.conection.model.AddGroupResponse;
+import com.t4app.t4syncwave.conection.model.GetGroupByIdResponse;
+import com.t4app.t4syncwave.conection.model.GetTracksResponse;
 import com.t4app.t4syncwave.conection.model.LoginResponse;
 import com.t4app.t4syncwave.conection.model.ResponseGetGroups;
 import com.t4app.t4syncwave.model.AudioUploadResponse;
@@ -12,15 +14,15 @@ import java.util.Map;
 import okhttp3.MultipartBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
-import retrofit2.http.FieldMap;
-import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
+import retrofit2.http.Path;
 
 public interface ApiServices {
 
+    //AUTH
     @POST(ApiConfig.LOGIN_URL)
     Call<LoginResponse> login(
             @Body Map<String, Object> body
@@ -32,15 +34,31 @@ public interface ApiServices {
     );
 
 
+    //GROUP
+    @GET(ApiConfig.GET_GROUPS)
+    Call<ResponseGetGroups> getGroupsList();
+
+    @POST(ApiConfig.ADD_GROUP)
+    Call<AddGroupResponse> addGroup(
+            @Body Map<String, Object> body
+    );
+
+    @GET(ApiConfig.GET_GROUP_BY_ID)
+    Call<GetGroupByIdResponse> getGroupById(
+            @Path("uuid") String id
+    );
+
+
+    //AUDIO
     @POST(ApiConfig.UPLOAD_AUDIO)
     @Multipart
     Call<AudioUploadResponse> uploadFile(
             @Part MultipartBody.Part files
     );
 
-    @GET(ApiConfig.GET_GROUPS)
-    Call<ResponseGetGroups> getGroupsList();
-
     @GET(ApiConfig.GET_AUDIO_LIST)
     Call<List<MusicItem>> getAudioList();
+
+    @GET(ApiConfig.GET_USER_TRACKS)
+    Call<GetTracksResponse> getUserTracks();
 }

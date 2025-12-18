@@ -11,6 +11,10 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
+
 import java.util.Objects;
 
 public class MessagesUtils {
@@ -45,7 +49,7 @@ public class MessagesUtils {
             Button ok_btn = dialogView.findViewById(R.id.ok_btn);
 
             if (errorMessage.contains("413 Request Entity Too Large")) {
-                errorMessage = "Video Too heavy";
+                errorMessage = "Audio Too heavy";
             }
             tvMessage.setText(errorMessage);
 
@@ -97,6 +101,59 @@ public class MessagesUtils {
             Toast.makeText(context, successMessage, Toast.LENGTH_LONG).show();
             isDialogShowing = false;
         }
+    }
+
+
+    public static void showAddGroupLayout(Context context, AddGroupListener listener) {
+        if (isDialogShowing) {
+            return;
+        }
+        isDialogShowing = true;
+
+        if (currentDialog != null && currentDialog.isShowing()) {
+            currentDialog.dismiss();
+        }
+
+        try {
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            Activity activity = (Activity) context;
+            LayoutInflater inflater = activity.getLayoutInflater();
+            View dialogView = inflater.inflate(R.layout.add_group_layout, null);
+            builder.setView(dialogView).setCancelable(false);
+
+            currentDialog = builder.create();
+            Objects.requireNonNull(currentDialog.getWindow()).setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+            TextInputLayout groupNameLayout = dialogView.findViewById(R.id.groupNameLayout);
+            TextInputEditText groupNameValue = dialogView.findViewById(R.id.groupNameValue);
+            MaterialButton addGroupBtn = dialogView.findViewById(R.id.btnAdd);
+            MaterialButton cancelBtn = dialogView.findViewById(R.id.btnCancel);
+
+            addGroupBtn.setOnClickListener(view -> {
+                String nameGroup = groupNameValue.getText().toString();
+                if (nameGroup.isEmpty()){
+                    groupNameLayout.setError("Name Is Required");
+                    groupNameValue.requestFocus();
+                }else{
+                    listener.onAddGroup(nameGroup);
+                    currentDialog.dismiss();
+                    isDialogShowing = false;
+                }
+            });
+
+            cancelBtn.setOnClickListener(view -> {
+                currentDialog.dismiss();
+                isDialogShowing = false;
+            });
+
+            currentDialog.show();
+        } catch (Exception e) {
+            isDialogShowing = false;
+        }
+    }
+
+    public interface AddGroupListener{
+        void onAddGroup(String groupName);
     }
 
 

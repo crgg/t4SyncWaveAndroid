@@ -7,7 +7,7 @@ public final class PlaybackState {
     private final String userName;
     private final Double position;
     private final boolean isPlaying;
-    private final int timestamp;
+    private final double timestamp;
 
     private PlaybackState(Builder builder) {
         this.type = builder.type;
@@ -25,9 +25,9 @@ public final class PlaybackState {
         private String userName;
         private Double position;
         private boolean isPlaying;
-        private int timestamp;
+        private double timestamp;
 
-        public Builder(String type, String room, String userName, int timestamp) {
+        public Builder(String type, String room, String userName, double timestamp) {
             this.type = type;
             this.room = room;
             this.userName = userName;
@@ -82,7 +82,7 @@ public final class PlaybackState {
     public String getUserName() { return userName; }
     public Double getPosition() { return position; }
     public boolean isPlaying() { return isPlaying; }
-    public int getTimestamp() { return timestamp; }
+    public double getTimestamp() { return timestamp; }
 }
 
 

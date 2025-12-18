@@ -10,6 +10,11 @@ public class PlaybackEvent {
         private IAmHost() {}
     }
 
+    public static final class Disconnected extends PlaybackEvent{
+        public static final Disconnected INSTANCE = new Disconnected();
+        private Disconnected() {}
+    }
+
     public static abstract class RemoteParticipantEvent extends PlaybackEvent{
         private RemoteParticipantEvent() {}
     }

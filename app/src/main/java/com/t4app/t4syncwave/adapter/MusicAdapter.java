@@ -1,4 +1,4 @@
-package com.t4app.t4syncwave;
+package com.t4app.t4syncwave.adapter;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.t4app.t4syncwave.R;
 import com.t4app.t4syncwave.model.MusicItem;
 
 import java.util.ArrayList;

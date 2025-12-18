@@ -68,7 +68,7 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
                     handleChangeState(json);
                     break;
                 case "left":
-//                    handleUserLeave(json);
+                    handleUserLeave(json);
                     break;
                 case "answer":
 //                    JSONObject sdpObj = json.getJSONObject("sdp");
@@ -149,8 +149,30 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
         }
     }
 
+    public void handleUserLeave(JSONObject json){
+        try {
+            String remoteRoom = json.optString("room");
+            String remoteUsername = json.optString("userName");
+            if (remoteRoom.equalsIgnoreCase(room.getRoomName())){
+                if (remoteUsername.equalsIgnoreCase(room.getUserName())){
+                    sfuWebSocketClient.close();
+                    sendPlaybackEvent(PlaybackEvent.Disconnected.INSTANCE);
+                }else{
+                    sendPlaybackEvent(new PlaybackEvent.RemoteParticipantEvent.RemoteUserLeave(remoteUsername, remoteUsername));
+                }
+            }
+        }catch (Exception e){
+            Log.e(TAG, "handleUserJoined: ", e);
+        }
+
+    }
+
     public void sendChangeState(PlaybackState state){
         socketManager.sendPlaybackState(state);
+    }
+
+    public void sendLeft(){
+        socketManager.sendLeft(room);
     }
 
 
