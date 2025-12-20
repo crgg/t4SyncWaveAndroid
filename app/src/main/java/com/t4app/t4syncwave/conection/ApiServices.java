@@ -1,6 +1,7 @@
 package com.t4app.t4syncwave.conection;
 
 import com.t4app.t4syncwave.conection.model.AddGroupResponse;
+import com.t4app.t4syncwave.conection.model.AddMemberResponse;
 import com.t4app.t4syncwave.conection.model.GetGroupByIdResponse;
 import com.t4app.t4syncwave.conection.model.GetTracksResponse;
 import com.t4app.t4syncwave.conection.model.LoginResponse;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -35,8 +37,16 @@ public interface ApiServices {
 
 
     //GROUP
+    @GET(ApiConfig.GET_ALL_GROUPS)
+    Call<ResponseGetGroups> getAllGroupsList();
+
     @GET(ApiConfig.GET_GROUPS)
     Call<ResponseGetGroups> getGroupsList();
+
+    @POST(ApiConfig.ADD_MEMBER)
+    Call<AddMemberResponse> addMember(
+            @Body Map<String, Object> body
+    );
 
     @POST(ApiConfig.ADD_GROUP)
     Call<AddGroupResponse> addGroup(
@@ -50,10 +60,11 @@ public interface ApiServices {
 
 
     //AUDIO
-    @POST(ApiConfig.UPLOAD_AUDIO)
     @Multipart
-    Call<AudioUploadResponse> uploadFile(
-            @Part MultipartBody.Part files
+    @POST(ApiConfig.UPLOAD_AUDIO)
+    Call<AudioUploadResponse> uploadAudio(
+            @Part MultipartBody.Part file,
+            @Part("groupId") RequestBody groupId
     );
 
     @GET(ApiConfig.GET_AUDIO_LIST)

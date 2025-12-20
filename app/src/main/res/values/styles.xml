@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="BottomNavText">
+        <item name="android:textSize">10sp</item>
+    </style>
+
+
+    <style name="BottomNavIndicator">
+        <item name="shapeAppearanceOverlay">@style/RoundedIndicator</item>
+    </style>
+
+    <style name="RoundedIndicator">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">5dp</item>
+    </style>
+
+
+</resources>

@@ -39,10 +39,7 @@ public class PlaybackViewModel extends ViewModel implements PlaybackEventListene
         if (event instanceof PlaybackViewEvent.Connect){
             PlaybackViewEvent.Connect connect = (PlaybackViewEvent.Connect) event;
 
-            room = new Room();
-
-            room.setRoomName(connect.getRoom());
-            room.setUserName(connect.getUsername());
+            room = connect.getRoom();
 
             playbackManager.connectRoom(room);
         } else if (event instanceof PlaybackViewEvent.Disconnect) {

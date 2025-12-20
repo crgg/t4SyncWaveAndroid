@@ -24,6 +24,8 @@ public class SfuWebSocketManager {
             joinJson.put("type", "join");
             joinJson.put("room", room.getRoomName());
             joinJson.put("userName", room.getUserName());
+            joinJson.put("userId", room.getUserId());
+            joinJson.put("role", room.getRole());
 
             Log.d(TAG, "JOIN enviado: " + joinJson);
             sfuClient.send(joinJson.toString());
@@ -53,6 +55,7 @@ public class SfuWebSocketManager {
             JSONObject json = new JSONObject();
             json.put("type", state.getType());
             json.put("room", state.getRoom());
+            json.put("trackUrl", "");//TODO
             json.put("userName", state.getUserName());
             json.put("timestamp", state.getTimestamp());
 

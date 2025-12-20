@@ -11,23 +11,32 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <FrameLayout
-            android:id="@+id/main_container"
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/nav_host"
             android:layout_width="match_parent"
+            android:layout_weight="1"
             android:layout_height="0dp"
-            android:layout_weight="1"/>
+            app:defaultNavHost="true"
+            app:navGraph="@navigation/main_nav_graph"
+            android:name="androidx.navigation.fragment.NavHostFragment" />
 
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tabLayout"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            app:tabMode="fixed"
-            app:tabMaxWidth="0dp"
-            app:tabGravity="fill"
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottomNav"
             android:background="@color/primary_color"
-            app:tabIndicatorColor="@color/white"
-            app:tabIconTint="@color/white"
-            app:tabTextColor="@color/white"/>
+            android:layout_width="match_parent"
+            app:itemIconSize="20dp"
+            android:minHeight="48dp"
+            app:labelVisibilityMode="labeled"
+            android:elevation="0dp"
+            app:itemActiveIndicatorStyle="@style/BottomNavIndicator"
+            app:itemIconTint="@color/white"
+            app:itemTextColor="@color/white"
+            app:itemPaddingBottom="2dp"
+            app:itemTextAppearanceActive="@style/BottomNavText"
+            app:itemTextAppearanceInactive="@style/BottomNavText"
+            android:layout_height="wrap_content"
+            app:menu="@menu/bottom_menu" />
+
 
     </LinearLayout>
 

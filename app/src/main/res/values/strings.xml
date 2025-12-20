@@ -23,4 +23,11 @@
     <string name="no_music_has_been_added_yet">No music has been added yet.</string>
     <string name="library">Library</string>
     <string name="listener">Listener</string>
+    <string name="my_groups">My Groups</string>
+    <string name="all_groups">All Groups</string>
+    <string name="created">Created</string>
+    <string name="joined">Joined</string>
+    <string name="add_new_member">Add New Member</string>
+    <string name="profile">Profile</string>
+    <string name="_0_00">0:00</string>
 </resources>

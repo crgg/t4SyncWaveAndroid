@@ -79,81 +79,11 @@
         android:layout_width="48dp"
         android:layout_height="48dp"/>
 
-
-    <LinearLayout
+    <com.t4app.t4syncwave.ui.AudioPlayerView
         android:id="@+id/actions_container"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="30dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="4dp">
-
-            <TextView
-                android:id="@+id/tvCurrentTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:textSize="12sp"
-                android:textColor="@color/gray_hint" />
-
-            <TextView
-                android:id="@+id/tvTotalTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="@color/gray_hint" />
-
-        </LinearLayout>
-
-        <SeekBar
-            android:id="@+id/seekBarAudio"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:progressBackgroundTint="@color/gray_hint"
-            android:progressTint="@color/primary_color"
-            android:thumbTint="@color/primary_color"
-            android:max="100"
-            android:progress="0" />
-
-        <LinearLayout
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginTop="25dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <androidx.appcompat.widget.AppCompatImageButton
-                android:src="@drawable/ic_forward"
-                android:layout_marginEnd="50dp"
-                android:background="@null"
-                android:rotation="180"
-                android:layout_width="48dp"
-                android:layout_height="48dp"/>
-
-            <androidx.appcompat.widget.AppCompatImageButton
-                android:id="@+id/btnPlayPause"
-                android:src="@drawable/ic_play"
-                android:background="@null"
-                android:layout_width="48dp"
-                android:layout_marginEnd="50dp"
-                android:layout_height="48dp"/>
-
-            <androidx.appcompat.widget.AppCompatImageButton
-                android:src="@drawable/ic_forward"
-                android:background="@null"
-                android:layout_width="48dp"
-                android:layout_height="48dp"/>
-        </LinearLayout>
-    </LinearLayout>
-
-
+        android:layout_height="wrap_content"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

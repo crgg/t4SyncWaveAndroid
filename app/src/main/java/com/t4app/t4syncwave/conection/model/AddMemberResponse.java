@@ -1,21 +1,19 @@
-package com.t4app.t4syncwave.model;
+package com.t4app.t4syncwave.conection.model;
 
 import com.google.gson.annotations.SerializedName;
+import com.t4app.t4syncwave.model.Member;
+
 import java.io.Serializable;
 
-public class AudioUploadResponse implements Serializable {
-
+public class AddMemberResponse implements Serializable {
     @SerializedName("status")
     private boolean status;
 
-    @SerializedName("audio")
-    private MusicItem audio;
+    @SerializedName("member")
+    private Member member;
 
     @SerializedName("error")
     private String error;
-
-    public AudioUploadResponse() {
-    }
 
     public boolean isStatus() {
         return status;
@@ -25,12 +23,12 @@ public class AudioUploadResponse implements Serializable {
         this.status = status;
     }
 
-    public MusicItem getAudio() {
-        return audio;
+    public Member getMember() {
+        return member;
     }
 
-    public void setAudio(MusicItem audio) {
-        this.audio = audio;
+    public void setMember(Member member) {
+        this.member = member;
     }
 
     public String getError() {
@@ -41,4 +39,3 @@ public class AudioUploadResponse implements Serializable {
         this.error = error;
     }
 }
-

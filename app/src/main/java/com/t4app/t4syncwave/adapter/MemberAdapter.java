@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.t4app.t4syncwave.R;
+import com.t4app.t4syncwave.model.GroupItem;
 import com.t4app.t4syncwave.model.Member;
 
 import java.util.ArrayList;
@@ -32,6 +33,13 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.MemberView
             members.addAll(list);
         }
         notifyDataSetChanged();
+    }
+
+    public void addMember(Member member) {
+        if (member == null) return;
+
+        members.add(member);
+        notifyItemInserted(members.size() - 1);
     }
 
     @NonNull

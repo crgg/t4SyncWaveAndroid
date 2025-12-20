@@ -12,4 +12,18 @@ public class ListenersUtils {
     public interface OnRoomClickListener {
         void onRoomClick(GroupItem room);
     }
+
+    public interface AddGroupListener{
+        void onAddGroup(String groupName);
+    }
+
+    public interface AddMemberListener{
+        void onAddMember(String email);
+    }
+
+    public interface PlaybackActionListener {
+        void onPlayRequested();
+        void onPauseRequested();
+        void onChangeSeek(int progress);
+    }
 }

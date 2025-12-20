@@ -1,0 +1,8 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/filter_my_groups"
+        android:title="@string/created" />
+    <item
+        android:id="@+id/filter_groups_listens"
+        android:title="@string/joined" />
+</menu>

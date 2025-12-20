@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    id("androidx.navigation.safeargs")
 }
 
 android {
@@ -42,6 +43,8 @@ dependencies {
 
     implementation("androidx.navigation:navigation-fragment:2.7.7")
     implementation("androidx.navigation:navigation-ui:2.7.7")
+
+    implementation("androidx.fragment:fragment:1.6.2")
 
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)

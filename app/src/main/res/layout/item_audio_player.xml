@@ -1,66 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
-    android:background="@color/background"
+<LinearLayout android:id="@+id/containerMusic"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:visibility="visible"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ui.room.RoomActivity">
+    android:layout_height="wrap_content"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <ImageView
+        android:src="@drawable/ic_music"
+        app:tint="@color/primary_color_light"
+        android:layout_width="56dp"
+        android:layout_height="56dp"/>
 
-    <LinearLayout
-        android:id="@+id/header"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="8dp"
-        app:layout_scrollFlags="scroll|enterAlways">
-
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/listener"
-            android:textColor="@color/primary_color"
-            android:textStyle="bold"
-            android:textSize="25sp"
-            android:maxLines="1"
-            android:ellipsize="end"/>
-
-    </LinearLayout>
-
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/musicListRv"
-        app:layout_constraintTop_toBottomOf="@id/header"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
-        app:layout_constraintBottom_toTopOf="@id/actions_container"
-        android:layout_width="match_parent"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp"
-        android:layout_height="0dp"/>
-
-
-    <androidx.appcompat.widget.AppCompatImageButton
-        android:id="@+id/disconnectRoom"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/musicListRv"
-        app:layout_constraintEnd_toEndOf="@id/musicListRv"
-        android:src="@drawable/ic_exit"
-        android:background="@null"
-        android:scaleType="fitCenter"
-        android:layout_width="48dp"
-        android:layout_height="48dp"/>
-
+    <TextView
+        android:id="@+id/songName"
+        android:textStyle="bold"
+        android:textColor="@color/text_color"
+        android:textSize="14sp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
     <LinearLayout
         android:id="@+id/actions_container"
@@ -108,7 +70,6 @@
         <LinearLayout
             android:orientation="horizontal"
             android:gravity="center"
-            android:layout_marginTop="25dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
@@ -135,7 +96,5 @@
                 android:layout_height="48dp"/>
         </LinearLayout>
     </LinearLayout>
+</LinearLayout>
 
-
-
-</androidx.constraintlayout.widget.ConstraintLayout>

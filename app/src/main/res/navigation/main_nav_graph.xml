@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:startDestination="@id/groupsFragment"
+    android:id="@+id/main_nav_graph.xml">
+
+    <fragment
+        android:id="@+id/groupsFragment"
+        android:name="com.t4app.t4syncwave.ui.main.GroupsFragment" >
+
+        <action
+            android:id="@+id/action_group_to_groupAdmin"
+            app:destination="@id/groupAdminFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/groupAdminFragment"
+        android:name="com.t4app.t4syncwave.ui.room.GroupAdminFragment">
+
+        <argument
+            android:name="groupId"
+            app:argType="string" />
+
+        <argument
+            android:name="isAdmin"
+            app:argType="boolean" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/listenerFragment"
+        android:name="com.t4app.t4syncwave.ui.main.ListenerFragment" />
+
+    <fragment
+        android:id="@+id/libraryFragment"
+        android:name="com.t4app.t4syncwave.ui.main.LibraryFragment" />
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.t4app.t4syncwave.ui.main.ProfileFragment" />
+
+</navigation>

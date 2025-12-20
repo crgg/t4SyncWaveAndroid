@@ -36,6 +36,8 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
             if (!sfuWebSocketClient.isConnected()){
                 room.setRoomName(roomState.getRoomName());
                 room.setUserName(roomState.getUserName());
+                room.setRole(roomState.getRole());
+                room.setUserId(roomState.getUserId());
                 sfuWebSocketClient.connect(ApiConfig.WEB_SOCKET_URL);
             }
         }

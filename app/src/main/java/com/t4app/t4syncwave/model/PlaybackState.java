@@ -61,7 +61,7 @@ public final class PlaybackState {
             return this;
         }
 
-        public Builder setTimestamp(int val) {
+        public Builder setTimestamp(double val) {
             this.timestamp = val;
             return this;
         }
@@ -74,8 +74,10 @@ public final class PlaybackState {
     public Builder copy() {
         return new Builder(this.type, this.room, this.userName, this.timestamp)
                 .setPosition(this.position)
-                .setPlaying(this.isPlaying);
+                .setPlaying(this.isPlaying)
+                .setTimestamp(this.timestamp);
     }
+
 
     public String getType() { return type; }
     public String getRoom() { return room; }

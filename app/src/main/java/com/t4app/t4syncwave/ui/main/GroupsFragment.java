@@ -8,19 +8,23 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.t4app.t4syncwave.AppController;
 import com.t4app.t4syncwave.ErrorUtils;
 import com.t4app.t4syncwave.MessagesUtils;
+import com.t4app.t4syncwave.R;
 import com.t4app.t4syncwave.SessionManager;
 import com.t4app.t4syncwave.adapter.GroupAdapter;
 import com.t4app.t4syncwave.conection.ApiServices;
 import com.t4app.t4syncwave.conection.model.AddGroupResponse;
 import com.t4app.t4syncwave.conection.model.ResponseGetGroups;
 import com.t4app.t4syncwave.databinding.FragmentGroupsBinding;
-import com.t4app.t4syncwave.ui.room.GroupAdminFragment;
+import com.t4app.t4syncwave.viewmodel.GroupsViewModel;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +39,10 @@ public class GroupsFragment extends Fragment {
     private FragmentGroupsBinding binding;
     private GroupAdapter adapter;
     private SessionManager sessionManager;
+
+    private GroupsViewModel viewModel;
+
+    private boolean myGroups = true;
 
     public GroupsFragment() {
     }
@@ -61,22 +69,60 @@ public class GroupsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        viewModel = new ViewModelProvider(this).get(GroupsViewModel.class);
+
+        viewModel.getFilter().observe(getViewLifecycleOwner(), filter -> {
+            if (filter == GroupsViewModel.Filter.MY_GROUPS){
+                binding.btnFilter.setText(R.string.created);
+                myGroups = true;
+                getMyGroups();
+            }else {
+                binding.btnFilter.setText(R.string.joined);
+                myGroups = false;
+                getAllGroups();
+            }
+        });
+
         adapter = new GroupAdapter(group -> {
-            ((T4SyncWaveMainActivity) requireActivity()).showFragment(GroupAdminFragment.newInstance(group.getId()));
-//            Intent intent = new Intent(requireActivity(), RoomActivity.class);
-//            intent.putExtra("roomName", group.getName());
-//            intent.putExtra("userName", sessionManager.getName());
-//            startActivity(intent);
+
+            GroupsFragmentDirections.ActionGroupToGroupAdmin action =
+                    GroupsFragmentDirections.actionGroupToGroupAdmin(group.getId(), myGroups);
+
+            NavHostFragment.findNavController(this).navigate(action);
+
         });
 
         binding.roomsRv.setLayoutManager(new LinearLayoutManager(view.getContext()));
         binding.roomsRv.setAdapter(adapter);
 
-        binding.swipeRefresh.setOnRefreshListener(this::getGroups);
+        binding.swipeRefresh.setOnRefreshListener(() -> {
+            if (myGroups){
+                getMyGroups();
+            }else {
+                getAllGroups();
+            }
+        });
 
         binding.btnAdd.setOnClickListener(v -> MessagesUtils.showAddGroupLayout(requireActivity(), this::addGroup));
 
-        getGroups();
+        binding.btnFilter.setOnClickListener(view1 -> {
+            PopupMenu popup = new PopupMenu(requireActivity(), binding.btnFilter);
+            popup.getMenuInflater().inflate(R.menu.menu_group_filter, popup.getMenu());
+
+            popup.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.filter_my_groups) {
+                    viewModel.setFilter(GroupsViewModel.Filter.MY_GROUPS);
+                    return true;
+                } else if (item.getItemId() == R.id.filter_groups_listens) {
+                    viewModel.setFilter(GroupsViewModel.Filter.ALL_GROUPS);
+                    return true;
+                }
+                return false;
+            });
+
+            popup.show();
+        });
+
     }
 
     private void addGroup(String groupName){
@@ -105,9 +151,44 @@ public class GroupsFragment extends Fragment {
         });
     }
 
-    private void getGroups(){
+    private void getMyGroups(){
         ApiServices apiServices = AppController.getApiServices();
         Call<ResponseGetGroups> call = apiServices.getGroupsList();
+        call.enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<ResponseGetGroups> call, @NonNull Response<ResponseGetGroups> response) {
+                if (response.isSuccessful()) {
+                    ResponseGetGroups body = response.body();
+                    if (body != null) {
+                        if (body.isStatus()){
+                            if (body.getGroups() != null && !body.getGroups().isEmpty()){
+                                binding.noGroupsTv.setVisibility(View.GONE);
+                                binding.roomsRv.setVisibility(View.VISIBLE);
+                                adapter.updateList(body.getGroups());
+                            }
+                        }else {
+                            if (body.getError() != null && body.getError().contains("No groups found")){
+                                binding.noGroupsTv.setVisibility(View.VISIBLE);
+                                binding.roomsRv.setVisibility(View.GONE);
+                            }
+                        }
+                    }
+                    binding.swipeRefresh.setRefreshing(false);
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ResponseGetGroups> call, @NonNull Throwable t) {
+                Log.e(TAG, "onFailure: GET GROUPS" + t.getMessage() );
+                binding.swipeRefresh.setRefreshing(false);
+            }
+        });
+    }
+
+
+    private void getAllGroups(){
+        ApiServices apiServices = AppController.getApiServices();
+        Call<ResponseGetGroups> call = apiServices.getAllGroupsList();
         call.enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<ResponseGetGroups> call, @NonNull Response<ResponseGetGroups> response) {

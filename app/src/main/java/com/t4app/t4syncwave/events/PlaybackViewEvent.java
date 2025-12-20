@@ -1,23 +1,22 @@
 package com.t4app.t4syncwave.events;
 
 import com.t4app.t4syncwave.model.PlaybackState;
+import com.t4app.t4syncwave.model.Room;
 
 public class PlaybackViewEvent {
 
     public static final class Connect extends PlaybackViewEvent {
-        private final String room;
-        private final String username;
-        public Connect(String room, String username){
+        private Room room;
+        public Connect(Room room){
             this.room = room;
-            this.username = username;
         }
 
-        public String getRoom() {
+        public Room getRoom() {
             return room;
         }
 
-        public String getUsername() {
-            return username;
+        public void setRoom(Room room) {
+            this.room = room;
         }
     }
 

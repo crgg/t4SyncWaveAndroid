@@ -8,23 +8,50 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".ui.main.LibraryFragment">
 
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="0dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="@string/library"
-        android:textColor="@color/primary_color"
-        android:textStyle="bold"
-        android:textSize="25sp"
-        android:maxLines="1"
-        android:ellipsize="end"/>
 
     <LinearLayout
-        app:layout_constraintTop_toBottomOf="@id/title"
+        android:id="@+id/header"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="8dp"
+        app:layout_scrollFlags="scroll|enterAlways">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="0dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/library"
+            android:textColor="@color/primary_color"
+            android:textStyle="bold"
+            android:textSize="25sp"
+            android:maxLines="1"
+            android:ellipsize="end"/>
+
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btnAdd"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_add"
+            android:tint="@color/white"
+            android:background="@drawable/bg_circle"
+            android:elevation="6dp"
+            android:padding="8dp"
+            android:scaleType="centerInside"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        app:layout_constraintTop_toBottomOf="@id/header"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:id="@+id/currentMusicPlay"
@@ -86,7 +113,7 @@
 
     <TextView
         android:id="@+id/noTracksTv"
-        app:layout_constraintTop_toBottomOf="@id/currentMusicPlay"
+        app:layout_constraintTop_toBottomOf="@id/header"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="20dp"

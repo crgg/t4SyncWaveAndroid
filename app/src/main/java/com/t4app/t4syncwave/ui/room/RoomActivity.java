@@ -23,8 +23,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.t4app.t4syncwave.AppController;
 import com.t4app.t4syncwave.FileUtils;
+import com.t4app.t4syncwave.ListenersUtils;
 import com.t4app.t4syncwave.adapter.MusicAdapter;
 import com.t4app.t4syncwave.PermissionUtil;
+import com.t4app.t4syncwave.ui.AudioPlayerView;
 import com.t4app.t4syncwave.viewmodel.PlaybackManager;
 import com.t4app.t4syncwave.R;
 import com.t4app.t4syncwave.conection.ApiServices;
@@ -50,13 +52,6 @@ public class RoomActivity extends AppCompatActivity {
     private static final String TAG = "MAIN_ACTIVITY";
     private ActivityMainBinding binding;
 
-    private ImageButton btnPlayPause;
-    private SeekBar seekBarAudio;
-    private TextView tvCurrentTime;
-    private TextView tvTotalTime;
-
-    private MediaPlayer mediaPlayer;
-    private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean isPlaying = false;
     private boolean isPrepared = false;
 
@@ -68,6 +63,8 @@ public class RoomActivity extends AppCompatActivity {
 
     private String songListening;
     private boolean iAmHost = false;
+
+    private AudioPlayerView audioPlayerView;
 
     private ActivityResultLauncher<Intent> audioPickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -87,24 +84,14 @@ public class RoomActivity extends AppCompatActivity {
             }
         );
 
-    private Runnable updateProgress = new Runnable() {
-        @Override
-        public void run() {
-            if (mediaPlayer != null && isPlaying) {
-                int currentPosition = mediaPlayer.getCurrentPosition();
-                seekBarAudio.setProgress(currentPosition);
-                tvCurrentTime.setText(formatTime(currentPosition / 1000) + " / ");
-                handler.postDelayed(this, 100);
-            }
-        }
-    };
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        audioPlayerView = findViewById(R.id.actions_container);
 
         room = new Room();
 
@@ -116,19 +103,14 @@ public class RoomActivity extends AppCompatActivity {
         viewModel = new ViewModelProvider(this, factory)
                 .get(PlaybackViewModel.class);
 
-        btnPlayPause = findViewById(R.id.btnPlayPause);
-        seekBarAudio = findViewById(R.id.seekBarAudio);
-        tvCurrentTime = findViewById(R.id.tvCurrentTime);
-        tvTotalTime = findViewById(R.id.tvTotalTime);
-
         adapter = new MusicAdapter(new MusicAdapter.OnMusicActionListener() {
             @Override
             public void onPlay(MusicItem item, int position) {
                 if (iAmHost){
                     if (item.getFileUrl().equalsIgnoreCase(songListening)){
-                        startAudioPlayback();
+                        audioPlayerView.startAudioPlayback();
                     }else{
-                        prepareAudio(item.getFileUrl(), true);
+                        audioPlayerView.prepareAudio(item.getFileUrl(), true);
                         state = new PlaybackState.Builder(
                                 "playback-state",
                                 room.getRoomName(),
@@ -145,16 +127,13 @@ public class RoomActivity extends AppCompatActivity {
             @Override
             public void onPause(MusicItem item) {
                 if (iAmHost){
-                    pauseAudioPlayback();
+                    audioPlayerView.pauseAudioPlayback();
                 }
             }
         });
 
         binding.musicListRv.setLayoutManager(new LinearLayoutManager(this));
         binding.musicListRv.setAdapter(adapter);
-
-        btnPlayPause.setEnabled(false);
-        seekBarAudio.setEnabled(false);
 
         observeEvents();
         getMusicList();
@@ -172,8 +151,37 @@ public class RoomActivity extends AppCompatActivity {
             String username = getIntent().getStringExtra("userName");
 
             binding.roomName.setText(roomName);
-            viewModel.processInput(new PlaybackViewEvent.Connect(roomName, username));
+            viewModel.processInput(new PlaybackViewEvent.Connect(room));
         }
+
+        audioPlayerView.setPlaybackActionListener(new ListenersUtils.PlaybackActionListener() {
+            @Override
+            public void onPlayRequested() {
+                if (iAmHost){
+                    PlaybackState updated = state.copy()
+                            .setPlaying(true)
+                            .build();
+                    viewModel.processInput(new PlaybackViewEvent.ChangeState(updated));
+                }
+            }
+
+            @Override
+            public void onPauseRequested() {
+                PlaybackState updated = state.copy()
+                        .setPlaying(false)
+                        .build();
+                viewModel.processInput(new PlaybackViewEvent.ChangeState(updated));
+            }
+
+            @Override
+            public void onChangeSeek(int progress) {
+                PlaybackState updateState = state.copy()
+                        .setTimestamp(progress)
+                        .build();
+                viewModel.processInput(new PlaybackViewEvent.ChangeState(updateState));
+            }
+        });
+
 
     }
 
@@ -200,7 +208,7 @@ public class RoomActivity extends AppCompatActivity {
                 finish();
             }else if (playbackEvent instanceof PlaybackEvent.IAmHost) {
                 iAmHost = true;
-                setupListeners();
+                audioPlayerView.setIamHost(true);
                 binding.selectAudioBtn.setVisibility(View.VISIBLE);
                 adapter.setClicksEnabled(true);
             }
@@ -222,12 +230,7 @@ public class RoomActivity extends AppCompatActivity {
             if (!iAmHost){
                 if (state != null){
                     if (state.getTimestamp() != remoteState.getState().getTimestamp()){
-                        if (mediaPlayer != null){
-                            mediaPlayer.seekTo((int) remoteState.getState().getTimestamp());
-                            if (isPlaying) {
-                                handler.postDelayed(updateProgress, 100);
-                            }
-                        }
+                        audioPlayerView.setProgress((int) remoteState.getState().getTimestamp());
                         state = state.copy().
                                 setTimestamp((int) remoteState.getState().getTimestamp()).
                                 build();
@@ -238,28 +241,20 @@ public class RoomActivity extends AppCompatActivity {
             }
 
             int pos = remoteState.getState().getPosition().intValue();
-            if (mediaPlayer != null){
+            if (audioPlayerView.getMediaPlayer() != null){
                 if (!adapter.getSong(pos).getFileUrl().equalsIgnoreCase(songListening)){
-                    prepareAudio(adapter.getSong(pos).getFileUrl(), remoteState.getState().isPlaying());
+                    audioPlayerView.prepareAudio(adapter.getSong(pos).getFileUrl(), remoteState.getState().isPlaying());
                 }
                 if (remoteState.getState().isPlaying()){
-                    mediaPlayer.start();
-                    isPlaying = true;
-                    btnPlayPause.setImageResource(R.drawable.ic_pause);
-                    handler.postDelayed(updateProgress, 100);
+                    audioPlayerView.startAudioPlayback();
                 }else{
-                    if (mediaPlayer.isPlaying()) {
-                        mediaPlayer.pause();
-                        isPlaying = false;
-                        btnPlayPause.setImageResource(R.drawable.ic_play);
-                        handler.removeCallbacks(updateProgress);
-                    }
+                    audioPlayerView.pauseAudioPlayback();
                 }
 
                 Log.d(TAG, "SYNC PLAY PAUSE STATE: " + remoteState.getState().isPlaying());
                 adapter.setRemotePlaying(pos, remoteState.getState().isPlaying());
             }else{
-                prepareAudio(adapter.getSong(pos).getFileUrl(), remoteState.getState().isPlaying());
+                audioPlayerView.prepareAudio(adapter.getSong(pos).getFileUrl(), remoteState.getState().isPlaying());
             }
 
         }
@@ -287,7 +282,6 @@ public class RoomActivity extends AppCompatActivity {
         });
     }
 
-
     //AUDIO PLAYER
     private void openAudioPicker() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -297,166 +291,10 @@ public class RoomActivity extends AppCompatActivity {
         audioPickerLauncher.launch(intent);
     }
 
-
-    public void prepareAudio(String url, boolean playing) {
-        cleanupMediaPlayer();
-
-        mediaPlayer = new MediaPlayer();
-
-        try {
-            mediaPlayer.setDataSource(url);
-            mediaPlayer.prepareAsync();
-
-            mediaPlayer.setOnPreparedListener(mp -> {
-                isPrepared = true;
-                setupAudioPlayer();
-                if (iAmHost){
-                    btnPlayPause.setEnabled(true);
-                }
-                seekBarAudio.setEnabled(true);
-                songListening = url;
-                togglePlayPause();
-            });
-
-            mediaPlayer.setOnCompletionListener(mp -> resetPlayer());
-
-            mediaPlayer.setOnErrorListener((mp, what, extra) -> {
-                resetPlayer();
-                return true;
-            });
-
-        } catch (IOException e) {
-            Log.e(TAG, "prepareAudio: ", e);
-        }
-    }
-
-
-    private void setupAudioPlayer() {
-        if (mediaPlayer != null) {
-            int duration = mediaPlayer.getDuration() / 1000;
-            seekBarAudio.setMax(mediaPlayer.getDuration());
-            tvTotalTime.setText(formatTime(duration));
-            tvCurrentTime.setText("0:00 / ");
-        }
-    }
-
-    private void setupListeners() {
-        btnPlayPause.setOnClickListener(v -> {
-            if (isPrepared) {
-                togglePlayPause();
-                adapter.toggleCurrentPlayPause();
-            }
-        });
-
-        seekBarAudio.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Log.d(TAG, "onProgressChanged: ");
-                if (fromUser && mediaPlayer != null) {
-                    tvCurrentTime.setText(formatTime(progress / 1000) + " / ");
-                }
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                Log.d(TAG, "onStartTrackingTouch: ");
-                handler.removeCallbacks(updateProgress);
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                Log.d(TAG, "onStopTrackingTouch: ");
-                if (mediaPlayer != null && isPrepared) {
-                    mediaPlayer.seekTo(seekBar.getProgress());
-                    PlaybackState updateState = state.copy()
-                            .setTimestamp(seekBar.getProgress())
-                            .build();
-                    viewModel.processInput(new PlaybackViewEvent.ChangeState(updateState));
-                    if (isPlaying) {
-                        handler.postDelayed(updateProgress, 100);
-                    }
-                }
-            }
-        });
-    }
-
-    private void togglePlayPause() {
-        if (!isPrepared || mediaPlayer == null) return;
-        if (!isPlaying) {
-            startAudioPlayback();
-        } else {
-            pauseAudioPlayback();
-        }
-    }
-
-    private void startAudioPlayback() {
-        mediaPlayer.start();
-        isPlaying = true;
-        btnPlayPause.setImageResource(R.drawable.ic_pause);
-        handler.postDelayed(updateProgress, 100);
-        PlaybackState updated = state.copy()
-                .setPlaying(true)
-                .build();
-        viewModel.processInput(new PlaybackViewEvent.ChangeState(updated));
-    }
-
-    private void pauseAudioPlayback() {
-        if (mediaPlayer != null){
-            if (mediaPlayer.isPlaying()) {
-                mediaPlayer.pause();
-                isPlaying = false;
-                btnPlayPause.setImageResource(R.drawable.ic_play);
-                handler.removeCallbacks(updateProgress);
-                PlaybackState updated = state.copy()
-                        .setPlaying(false)
-                        .build();
-                viewModel.processInput(new PlaybackViewEvent.ChangeState(updated));
-            }
-        }
-    }
-
-    private void resetPlayer() {
-        isPlaying = false;
-        btnPlayPause.setImageResource(R.drawable.ic_play);
-        if (mediaPlayer != null) {
-            mediaPlayer.seekTo(0);
-        }
-        seekBarAudio.setProgress(0);
-        tvCurrentTime.setText("0:00");
-        handler.removeCallbacks(updateProgress);
-    }
-
-    private String formatTime(int totalSeconds) {
-        int minutes = totalSeconds / 60;
-        int seconds = totalSeconds % 60;
-        return String.format("%d:%02d", minutes, seconds);
-    }
-
-    public void cleanupMediaPlayer() {
-        if (mediaPlayer != null) {
-            handler.removeCallbacks(updateProgress);
-            if (mediaPlayer.isPlaying()) {
-                mediaPlayer.stop();
-            }
-            mediaPlayer.release();
-            mediaPlayer = null;
-        }
-        isPrepared = false;
-        isPlaying = false;
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        stopPlayback();
+        audioPlayerView.stopPlayback();
     }
 
-    public boolean isPlaying() {
-        return isPlaying;
-    }
-
-    public void stopPlayback() {
-        pauseAudioPlayback();
-        resetPlayer();
-    }
 }
