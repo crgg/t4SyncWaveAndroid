@@ -23,6 +23,7 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.MusicViewHol
     public interface OnMusicActionListener {
         void onPlay(MusicItem item, int pos);
         void onPause(MusicItem item);
+        void onClick(MusicItem item);
     }
 
     private OnMusicActionListener listener;
@@ -64,6 +65,8 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.MusicViewHol
         holder.btnPlay.setImageResource(item.isPlaying() ? R.drawable.ic_pause_no_round :
                 R.drawable.ic_play_no_round);
 
+        holder.itemView.setOnClickListener(view -> listener.onClick(item));
+
         holder.btnPlay.setOnClickListener(v -> {
             if (!clicksEnabled) return;
             handlePlayClick(position);
@@ -102,6 +105,8 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.MusicViewHol
         if (position != RecyclerView.NO_POSITION){
             listener.onPlay(clicked, position);
         }
+
+
 
     }
 

@@ -55,7 +55,7 @@ public class SfuWebSocketManager {
             JSONObject json = new JSONObject();
             json.put("type", state.getType());
             json.put("room", state.getRoom());
-            json.put("trackUrl", "");//TODO
+            json.put("trackUrl", state.getTrackUrl());//TODO
             json.put("userName", state.getUserName());
             json.put("timestamp", state.getTimestamp());
 

@@ -130,6 +130,11 @@ public class RoomActivity extends AppCompatActivity {
                     audioPlayerView.pauseAudioPlayback();
                 }
             }
+
+            @Override
+            public void onClick(MusicItem item) {
+
+            }
         });
 
         binding.musicListRv.setLayoutManager(new LinearLayoutManager(this));

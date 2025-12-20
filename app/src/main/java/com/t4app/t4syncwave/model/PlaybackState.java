@@ -8,6 +8,7 @@ public final class PlaybackState {
     private final Double position;
     private final boolean isPlaying;
     private final double timestamp;
+    private final String trackUrl;
 
     private PlaybackState(Builder builder) {
         this.type = builder.type;
@@ -16,6 +17,7 @@ public final class PlaybackState {
         this.position = builder.position;
         this.isPlaying = builder.isPlaying;
         this.timestamp = builder.timestamp;
+        this.trackUrl = builder.trackUrl;
     }
 
     public static class Builder {
@@ -26,6 +28,7 @@ public final class PlaybackState {
         private Double position;
         private boolean isPlaying;
         private double timestamp;
+        private String trackUrl; // 🆕
 
         public Builder(String type, String room, String userName, double timestamp) {
             this.type = type;
@@ -34,6 +37,7 @@ public final class PlaybackState {
             this.timestamp = timestamp;
             this.isPlaying = false;
             this.position = null;
+            this.trackUrl = null;
         }
 
         public Builder setType(String val) {
@@ -66,6 +70,11 @@ public final class PlaybackState {
             return this;
         }
 
+        public Builder setTrackUrl(String val) {
+            this.trackUrl = val;
+            return this;
+        }
+
         public PlaybackState build() {
             return new PlaybackState(this);
         }
@@ -75,9 +84,9 @@ public final class PlaybackState {
         return new Builder(this.type, this.room, this.userName, this.timestamp)
                 .setPosition(this.position)
                 .setPlaying(this.isPlaying)
-                .setTimestamp(this.timestamp);
+                .setTimestamp(this.timestamp)
+                .setTrackUrl(this.trackUrl); // 🆕
     }
-
 
     public String getType() { return type; }
     public String getRoom() { return room; }
@@ -85,6 +94,5 @@ public final class PlaybackState {
     public Double getPosition() { return position; }
     public boolean isPlaying() { return isPlaying; }
     public double getTimestamp() { return timestamp; }
+    public String getTrackUrl() { return trackUrl; } // 🆕
 }
-
-

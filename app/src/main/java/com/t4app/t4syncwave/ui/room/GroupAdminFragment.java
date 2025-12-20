@@ -36,6 +36,7 @@ import com.t4app.t4syncwave.databinding.FragmentGroupAdminBinding;
 import com.t4app.t4syncwave.events.PlaybackEvent;
 import com.t4app.t4syncwave.events.PlaybackViewEvent;
 import com.t4app.t4syncwave.model.Group;
+import com.t4app.t4syncwave.model.MusicItem;
 import com.t4app.t4syncwave.model.PlaybackState;
 import com.t4app.t4syncwave.model.Room;
 import com.t4app.t4syncwave.model.Track;
@@ -93,11 +94,8 @@ public class GroupAdminFragment extends Fragment {
 
                     Uri audioUri = result.getData().getData();
                     if (audioUri != null) {
-//                        try {
-////                            uploadAudio(audioUri);
-//                        } catch (IOException e) {
-//                            throw new RuntimeException(e);
-//                        }
+//                        uploadAudio(audioUri);
+
                     }
                 }
             }
@@ -158,6 +156,33 @@ public class GroupAdminFragment extends Fragment {
 
         audioPlayerView.setIamHost(iAmOwner);
 
+        getParentFragmentManager()
+                .setFragmentResultListener(
+                        SelectSongBottomSheet.RESULT_KEY,
+                        getViewLifecycleOwner(),
+                        (key, bundle) -> {
+                            MusicItem selected = (MusicItem) bundle.getSerializable(SelectSongBottomSheet.SONG_KEY);
+                            if (state == null){
+                                state = new PlaybackState.Builder(
+                                        "playback-state",
+                                        room.getRoomName(),
+                                        room.getUserName(),
+                                        0)
+                                        .setPlaying(false)
+                                        .setTrackUrl(selected.getFileUrl())
+                                        .setPosition((double) 0)
+                                        .build();
+
+                                binding.containerNoMusic.setVisibility(View.GONE);
+                                binding.audioPlayerView.setVisibility(View.VISIBLE);
+                                audioPlayerView.prepareAudio(selected.getFileUrl(), false);
+
+                                viewModel.processInput(new PlaybackViewEvent.ChangeState(state));
+                            }
+                        }
+                );
+
+
         audioPlayerView.setPlaybackActionListener(new ListenersUtils.PlaybackActionListener() {
             @Override
             public void onPlayRequested() {
@@ -193,6 +218,14 @@ public class GroupAdminFragment extends Fragment {
         });
 
         binding.btnAddMusic.setOnClickListener(view3 -> {
+//            openAudioPicker();
+            SelectSongBottomSheet sheet = new SelectSongBottomSheet();
+
+            sheet.show(
+                    getParentFragmentManager(),
+                    "SelectSongBottomSheet"
+            );
+
 
         });
 
@@ -225,6 +258,7 @@ public class GroupAdminFragment extends Fragment {
                                 room.getUserName(),
                                 0)
                                 .setPlaying(false)
+                                .setTrackUrl(currentTrack.getFileUrl())
                                 .setPosition((double) 0)
                                 .build();
                     }
@@ -289,6 +323,13 @@ public class GroupAdminFragment extends Fragment {
                     (PlaybackEvent.RemoteParticipantEvent.ChangeRemoteState) event;
 
             PlaybackState remote = remoteState.getState();
+
+            if (currentTrack == null && remote.getTrackUrl() != null){
+                audioPlayerView.prepareAudio(remote.getTrackUrl(), iAmOwner);
+                binding.containerNoMusic.setVisibility(View.GONE);
+                binding.audioPlayerView.setVisibility(View.VISIBLE);
+
+            }
 
             if (audioPlayerView.getMediaPlayer() == null || !audioPlayerView.isPrepared()) {
                 return;

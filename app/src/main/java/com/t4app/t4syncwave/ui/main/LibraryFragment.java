@@ -101,6 +101,11 @@ public class LibraryFragment extends Fragment {
             public void onPause(MusicItem item) {
 
             }
+
+            @Override
+            public void onClick(MusicItem item) {
+
+            }
         });
 
         binding.musicListRv.setLayoutManager(new LinearLayoutManager(view.getContext()));
