@@ -357,9 +357,11 @@ public class GroupAdminFragment extends Fragment {
             PlaybackState remote = remoteState.getState();
 
             if (currentTrack == null && remote.getTrackUrl() != null){
-                audioPlayerView.prepareAudio(remote.getTrackUrl(), iAmOwner);
-                binding.containerNoMusic.setVisibility(View.GONE);
-                binding.audioPlayerView.setVisibility(View.VISIBLE);
+                if (state != null && !remote.getTrackUrl().equalsIgnoreCase(state.getTrackUrl())){
+                    audioPlayerView.prepareAudio(remote.getTrackUrl(), iAmOwner);
+                    binding.containerNoMusic.setVisibility(View.GONE);
+                    binding.audioPlayerView.setVisibility(View.VISIBLE);
+                }
             }
 
             if (audioPlayerView.getMediaPlayer() == null || !audioPlayerView.isPrepared()) {
@@ -368,7 +370,7 @@ public class GroupAdminFragment extends Fragment {
 
             if (!iAmOwner) {
                 if (state == null) {
-                    state = remote.copy().build();
+                    state = remote;
                 } else {
                     state = state.copy()
                             .setPlaying(remote.isPlaying())
@@ -390,7 +392,6 @@ public class GroupAdminFragment extends Fragment {
                     audioPlayerView.pauseLocal();
                 }
             }
-
 
             Log.d(TAG, "SYNC REMOTE -> playing=" + shouldPlay);
 

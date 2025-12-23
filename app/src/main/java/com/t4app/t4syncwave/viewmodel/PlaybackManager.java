@@ -158,6 +158,7 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
             String type = json.optString("type");
             String roomName = json.optString("room");
             String userName = json.optString("userName");
+            String trackUrl = json.optString("trackUrl");
 
             Double position = json.has("position") && !json.isNull("position")
                     ? json.optDouble("position") : null;
@@ -165,10 +166,10 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
             boolean isPlaying = json.optBoolean("isPlaying", false);
             int timestamp = json.optInt("timestamp", 0);
 
-            PlaybackState state =
-                    new PlaybackState.Builder(type, roomName, userName, timestamp)
+            PlaybackState state = new PlaybackState.Builder(type, roomName, userName, timestamp)
                             .setPosition(position)
                             .setPlaying(isPlaying)
+                            .setTrackUrl(trackUrl)
                             .build();
 
             if (!state.getRoom().equalsIgnoreCase(room.getRoomName())) {
