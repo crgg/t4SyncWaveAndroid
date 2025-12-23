@@ -9,6 +9,7 @@ import com.t4app.t4syncwave.events.PlaybackEventListener;
 import com.t4app.t4syncwave.model.PlaybackState;
 import com.t4app.t4syncwave.model.Room;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class PlaybackManager implements SfuWebSocketClient.Callback{
@@ -63,13 +64,22 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
                 case "joined":
                     handleUserJoined(json);
                     break;
+                case "user-joined":
+                    handleRemoteUserJoined(json);
+                    break;
                 case "role":
                     handleUserRole(json);
                     break;
                 case "playback-state":
                     handleChangeState(json);
                     break;
+                case "room-users":
+                    handeRoomUsers(json);
+                    break;
                 case "left":
+                    handleUserLeave(json);
+                    break;
+                case "close":
                     handleUserLeave(json);
                     break;
                 case "answer":
@@ -89,6 +99,32 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
             }
         } catch (Exception e) {
             Log.e(TAG, "Error parseando mensaje WS", e);
+        }
+    }
+
+    public void handeRoomUsers(JSONObject json){
+        try {
+            String remoteRoom = json.optString("room");
+            JSONArray users = json.optJSONArray("users");
+            if (users != null){
+                sendPlaybackEvent(new PlaybackEvent.UsersConnected(users));
+            }
+        }catch (Exception e){
+            Log.e(TAG, "handleUserJoined: ", e);
+        }
+    }
+
+    public void handleRemoteUserJoined(JSONObject json){
+        try {
+            String remoteRoom = json.optString("room");
+            JSONObject user = json.optJSONObject("users");
+            if (remoteRoom.equalsIgnoreCase(room.getRoomName()) &&
+                    user != null){
+
+                sendPlaybackEvent(new PlaybackEvent.RemoteParticipantEvent.NewUserJoined(user));
+            }
+        }catch (Exception e){
+            Log.e(TAG, "handleUserJoined: ", e);
         }
     }
 
@@ -124,8 +160,7 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
             String userName = json.optString("userName");
 
             Double position = json.has("position") && !json.isNull("position")
-                    ? json.optDouble("position")
-                    : null;
+                    ? json.optDouble("position") : null;
 
             boolean isPlaying = json.optBoolean("isPlaying", false);
             int timestamp = json.optInt("timestamp", 0);

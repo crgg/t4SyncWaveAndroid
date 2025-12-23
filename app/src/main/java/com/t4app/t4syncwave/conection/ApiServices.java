@@ -8,6 +8,7 @@ import com.t4app.t4syncwave.conection.model.LoginResponse;
 import com.t4app.t4syncwave.conection.model.ResponseGetGroups;
 import com.t4app.t4syncwave.model.AudioUploadResponse;
 import com.t4app.t4syncwave.model.MusicItem;
+import com.t4app.t4syncwave.model.TrackToGroupResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -16,7 +17,10 @@ import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
+import retrofit2.http.Headers;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
@@ -57,6 +61,13 @@ public interface ApiServices {
     Call<GetGroupByIdResponse> getGroupById(
             @Path("uuid") String id
     );
+
+    @Headers("Content-Type: application/json")
+    @POST(ApiConfig.ADD_TRACK_TO_GROUP)
+    Call<TrackToGroupResponse> setAudioInGroup(
+            @Body Map<String, Object> body
+    );
+
 
 
     //AUDIO

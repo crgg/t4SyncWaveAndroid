@@ -153,6 +153,54 @@ public class MessagesUtils {
         }
     }
 
+    public static void showJoinGroupByCode(Context context, ListenersUtils.AddGroupListener listener) {
+        if (isDialogShowing) {
+            return;
+        }
+        isDialogShowing = true;
+
+        if (currentDialog != null && currentDialog.isShowing()) {
+            currentDialog.dismiss();
+        }
+
+        try {
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            Activity activity = (Activity) context;
+            LayoutInflater inflater = activity.getLayoutInflater();
+            View dialogView = inflater.inflate(R.layout.add_by_code_layout, null);
+            builder.setView(dialogView).setCancelable(false);
+
+            currentDialog = builder.create();
+            Objects.requireNonNull(currentDialog.getWindow()).setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+            TextInputLayout groupCodeLayout = dialogView.findViewById(R.id.groupCodeLayout);
+            TextInputEditText groupCodeValue = dialogView.findViewById(R.id.groupCodeValue);
+            MaterialButton addGroupBtn = dialogView.findViewById(R.id.btnJoin);
+            MaterialButton cancelBtn = dialogView.findViewById(R.id.btnCancel);
+
+            addGroupBtn.setOnClickListener(view -> {
+                String nameGroup = groupCodeValue.getText().toString();
+                if (nameGroup.isEmpty()){
+                    groupCodeLayout.setError("Code is required");
+                    groupCodeValue.requestFocus();
+                }else{
+                    listener.onAddGroup(nameGroup);
+                    currentDialog.dismiss();
+                    isDialogShowing = false;
+                }
+            });
+
+            cancelBtn.setOnClickListener(view -> {
+                currentDialog.dismiss();
+                isDialogShowing = false;
+            });
+
+            currentDialog.show();
+        } catch (Exception e) {
+            isDialogShowing = false;
+        }
+    }
+
 
     public static void showAddMemberLayout(Context context, ListenersUtils.AddMemberListener listener) {
         if (isDialogShowing) {

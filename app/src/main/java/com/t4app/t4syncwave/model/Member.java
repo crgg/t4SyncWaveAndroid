@@ -34,6 +34,16 @@ public class Member implements Serializable {
     @SerializedName("group")
     private Group group;
 
+    private boolean isConnected;
+
+    public boolean isConnected() {
+        return isConnected;
+    }
+
+    public void setConnected(boolean connected) {
+        isConnected = connected;
+    }
+
     public String getGroupId() {
         return groupId;
     }

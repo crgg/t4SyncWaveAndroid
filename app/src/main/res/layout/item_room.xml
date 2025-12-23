@@ -27,7 +27,6 @@
                 android:id="@+id/roomNameTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Room name"
                 android:textSize="16sp"
                 android:textStyle="bold"/>
 
@@ -35,7 +34,6 @@
                 android:id="@+id/roomCodeTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Code: XXXXX"
                 android:textSize="13sp"
                 android:textColor="#777777"/>
 
@@ -43,7 +41,6 @@
                 android:id="@+id/roomStatusTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Inactive"
                 android:textSize="12sp"
                 android:textColor="#999999"/>
 

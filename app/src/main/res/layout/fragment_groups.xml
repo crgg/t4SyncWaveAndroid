@@ -29,7 +29,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/groups"
+                android:text="@string/my_groups"
                 android:textColor="@color/primary_color"
                 android:textStyle="bold"
                 android:textSize="25sp"
@@ -38,6 +38,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnFilter"
+                android:visibility="gone"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:layout_marginEnd="10dp"

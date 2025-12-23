@@ -1,9 +1,11 @@
 package com.t4app.t4syncwave.adapter;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
@@ -13,6 +15,8 @@ import com.t4app.t4syncwave.model.MusicItem;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.MusicViewHolder> {
 
@@ -23,7 +27,7 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.MusicViewHol
     public interface OnMusicActionListener {
         void onPlay(MusicItem item, int pos);
         void onPause(MusicItem item);
-        void onClick(MusicItem item);
+        void onClick(MusicItem item, int position);
     }
 
     private OnMusicActionListener listener;
@@ -65,7 +69,13 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.MusicViewHol
         holder.btnPlay.setImageResource(item.isPlaying() ? R.drawable.ic_pause_no_round :
                 R.drawable.ic_play_no_round);
 
-        holder.itemView.setOnClickListener(view -> listener.onClick(item));
+        if (item.getDurationMs() > 0){
+            holder.tvDuration.setText(formatTime(item.getDurationMs()));
+        }
+
+        holder.itemView.setOnClickListener(view ->{
+            handleItemClick(position);
+        });
 
         holder.btnPlay.setOnClickListener(v -> {
             if (!clicksEnabled) return;
@@ -80,7 +90,7 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.MusicViewHol
 
     private void handlePlayClick(int position) {
         MusicItem clicked = musicList.get(position);
-
+        Log.d("TAG_ADAPTER", "handlePlayClick: ");
         if (position == playingPosition) {
             boolean newState = !clicked.isPlaying();
             clicked.setPlaying(newState);
@@ -106,8 +116,51 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.MusicViewHol
             listener.onPlay(clicked, position);
         }
 
+    }
 
+    public void compareItem(int position, MusicItem musicItem) {
+        MusicItem clicked = musicList.get(position);
+        if (!Objects.equals(clicked.getId(), musicItem.getId())){
+            return;
+        }
+        if (position == playingPosition) {
+            boolean newState = !clicked.isPlaying();
+            clicked.setPlaying(newState);
+            notifyItemChanged(position);
+            return;
+        }
 
+        if (playingPosition != RecyclerView.NO_POSITION) {
+            MusicItem previous = musicList.get(playingPosition);
+            previous.setPlaying(false);
+            notifyItemChanged(playingPosition);
+        }
+
+        clicked.setPlaying(true);
+        playingPosition = position;
+        notifyItemChanged(position);
+        listener.onClick(clicked, position);
+    }
+
+    public void handleItemClick(int position) {
+        MusicItem clicked = musicList.get(position);
+        if (position == playingPosition) {
+            boolean newState = !clicked.isPlaying();
+            clicked.setPlaying(newState);
+            notifyItemChanged(position);
+            return;
+        }
+
+        if (playingPosition != RecyclerView.NO_POSITION) {
+            MusicItem previous = musicList.get(playingPosition);
+            previous.setPlaying(false);
+            notifyItemChanged(playingPosition);
+        }
+
+        clicked.setPlaying(true);
+        playingPosition = position;
+        notifyItemChanged(position);
+        listener.onClick(clicked, position);
     }
 
     public void toggleCurrentPlayPause() {
@@ -141,17 +194,27 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.MusicViewHol
         }
     }
 
+    public static String formatTime(long millis) {
+        long totalSeconds = millis / 1000;
+        long minutes = totalSeconds / 60;
+        long seconds = totalSeconds % 60;
 
+        return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds);
+    }
 
 
     static class MusicViewHolder extends RecyclerView.ViewHolder {
         ImageView btnPlay;
         TextView tvTitle;
+        TextView tvDuration;
+        LinearLayout container;
 
         MusicViewHolder(View itemView) {
             super(itemView);
             btnPlay = itemView.findViewById(R.id.btnPlay);
+            tvDuration = itemView.findViewById(R.id.tvDuration);
             tvTitle = itemView.findViewById(R.id.tvTitle);
+            container = itemView.findViewById(R.id.containerItemMusic);
         }
     }
 }

@@ -5,7 +5,8 @@
     android:background="@color/background_item"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
-    android:padding="12dp">
+    android:id="@+id/containerItemMusic"
+    android:padding="5dp">
 
     <ImageView
         android:id="@+id/btnPlay"
@@ -25,11 +26,16 @@
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:textSize="16sp" />
 
         <TextView
             android:id="@+id/tvArtist"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="@color/gray_hint"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="14sp" />
@@ -38,6 +44,7 @@
     <TextView
         android:id="@+id/tvDuration"
         android:layout_width="wrap_content"
+        android:textColor="@color/black"
         android:layout_height="wrap_content"
         android:textSize="14sp" />
 

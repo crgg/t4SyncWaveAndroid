@@ -1,7 +1,7 @@
 package com.t4app.t4syncwave.conection.model;
 
 import com.google.gson.annotations.SerializedName;
-import com.t4app.t4syncwave.model.GroupItem;
+import com.t4app.t4syncwave.model.Group;
 
 import java.io.Serializable;
 import java.util.List;
@@ -12,7 +12,7 @@ public class ResponseGetGroups implements Serializable {
     private boolean status;
 
     @SerializedName("groups")
-    private List<GroupItem> groups;
+    private List<Group> groups;
 
     @SerializedName("error")
     private String error;
@@ -33,11 +33,11 @@ public class ResponseGetGroups implements Serializable {
         this.status = status;
     }
 
-    public List<GroupItem> getGroups() {
+    public List<Group> getGroups() {
         return groups;
     }
 
-    public void setGroups(List<GroupItem> groups) {
+    public void setGroups(List<Group> groups) {
         this.groups = groups;
     }
 }

@@ -18,7 +18,6 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="8dp"
         app:layout_scrollFlags="scroll|enterAlways">
 
         <TextView
@@ -36,7 +35,6 @@
             android:maxLines="1"
             android:ellipsize="end"/>
 
-
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/btnAdd"
             android:layout_width="48dp"
@@ -47,57 +45,16 @@
             android:elevation="6dp"
             android:padding="8dp"
             android:scaleType="centerInside"/>
-
     </LinearLayout>
 
-    <LinearLayout
+    <com.t4app.t4syncwave.ui.AudioPlayerView
+        android:id="@+id/currentMusicPlay"
         app:layout_constraintTop_toBottomOf="@id/header"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:id="@+id/currentMusicPlay"
         android:visibility="gone"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/background_item"
-        android:orientation="horizontal"
-        android:padding="6dp">
-
-        <ImageView
-            android:id="@+id/btnPlay"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:src="@drawable/ic_play_no_round"
-            app:tint="@color/primary_color" />
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:paddingStart="12dp">
-
-            <TextView
-                android:id="@+id/tvTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/tvArtist"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="14sp" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/tvDuration"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="14sp" />
-
-    </LinearLayout>
-
+        android:layout_height="wrap_content"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/musicListRv"

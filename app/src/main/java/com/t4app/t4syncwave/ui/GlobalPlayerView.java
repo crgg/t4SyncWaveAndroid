@@ -2,7 +2,6 @@ package com.t4app.t4syncwave.ui;
 
 import android.content.Context;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -19,25 +18,18 @@ import com.t4app.t4syncwave.R;
 import java.io.IOException;
 import java.util.Locale;
 
-public class AudioPlayerView extends LinearLayout {
+public class GlobalPlayerView extends LinearLayout {
     private static final String TAG = "AUDIO_PLAYER_VIEW";
-    private static final int SEEK_INTERVAL_MS = 15_000;
-
 
     private ImageButton btnPlayPause;
-    private ImageButton btnRepeat;
-    private ImageButton btnBackward15;
-    private ImageButton btnForward15;
     private SeekBar seekBarAudio;
-    private TextView tvCurrentTime;
     private TextView songName;
-    private TextView tvTotalTime;
+    private TextView artistName;
 
     private MediaPlayer mediaPlayer;
     private Handler handler = new Handler();
     private boolean isPlaying = false;
     private boolean isPrepared = false;
-    private boolean isRepeat = false;
 
     private ListenersUtils.PlaybackActionListener listener;
 
@@ -53,25 +45,24 @@ public class AudioPlayerView extends LinearLayout {
             if (mediaPlayer != null && isPlaying) {
                 int currentPosition = mediaPlayer.getCurrentPosition();
                 seekBarAudio.setProgress(currentPosition);
-                tvCurrentTime.setText(formatTime(currentPosition / 1000) + " / ");
                 handler.postDelayed(this, 100);
             }
         }
     };
 
-    public AudioPlayerView(Context context) {
+    public GlobalPlayerView(Context context) {
         super(context);
         init(context);
     }
 
-    public AudioPlayerView(Context context, AttributeSet attrs) {
+    public GlobalPlayerView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context);
     }
 
     private void init(Context context) {
         LayoutInflater inflater = LayoutInflater.from(context);
-        View view = inflater.inflate(R.layout.item_audio_player, this, true);
+        View view = inflater.inflate(R.layout.item_global_player, this, true);
 
         initViews(view);
         setupListeners();
@@ -81,13 +72,9 @@ public class AudioPlayerView extends LinearLayout {
 
     private void initViews(View view) {
         songName = view.findViewById(R.id.songName);
-        btnRepeat = view.findViewById(R.id.repeatBtn);
-        btnBackward15 = view.findViewById(R.id.backward15);
-        btnForward15 = view.findViewById(R.id.forward15);
+        artistName = view.findViewById(R.id.artistName);
         btnPlayPause = view.findViewById(R.id.btnPlayPause);
         seekBarAudio = view.findViewById(R.id.seekBarAudio);
-        tvCurrentTime = view.findViewById(R.id.tvCurrentTime);
-        tvTotalTime = view.findViewById(R.id.tvTotalTime);
 
         btnPlayPause.setEnabled(false);
         seekBarAudio.setEnabled(false);
@@ -97,16 +84,17 @@ public class AudioPlayerView extends LinearLayout {
         songName.setText(text);
     }
 
+    public void setArtist(String text){
+        artistName.setText(text);
+    }
+
     private void setupAudioPlayer() {
         if (mediaPlayer != null) {
-            int duration = mediaPlayer.getDuration() / 1000;
             seekBarAudio.setMax(mediaPlayer.getDuration());
-            tvTotalTime.setText(formatTime(duration));
-            tvCurrentTime.setText("0:00 / ");
         }
     }
 
-    public void prepareAudio(String url, boolean playing) {
+    public void prepareAudio(String url) {
         cleanupMediaPlayer();
 
         mediaPlayer = new MediaPlayer();
@@ -122,7 +110,7 @@ public class AudioPlayerView extends LinearLayout {
                     btnPlayPause.setEnabled(true);
                 }
                 seekBarAudio.setEnabled(true);
-//                togglePlayPause();
+                togglePlayPause();
             });
 
             mediaPlayer.setOnCompletionListener(mp -> resetPlayer());
@@ -146,79 +134,31 @@ public class AudioPlayerView extends LinearLayout {
             }
         });
 
-        if (iAmHost) {
-            seekBarAudio.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    if (fromUser && mediaPlayer != null) {
-                        tvCurrentTime.setText(formatTime(progress / 1000)+ " / ");
+        seekBarAudio.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                handler.removeCallbacks(updateProgress);
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                if (mediaPlayer != null && isPrepared) {
+                    mediaPlayer.seekTo(seekBar.getProgress());
+                    if (isPlaying) {
+                        handler.postDelayed(updateProgress, 100);
+                    }
+
+                    if (listener != null){
+                        listener.onChangeSeek(seekBar.getProgress());
                     }
                 }
-
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {
-                    handler.removeCallbacks(updateProgress);
-                }
-
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {
-                    if (mediaPlayer != null && isPrepared) {
-                        mediaPlayer.seekTo(seekBar.getProgress());
-                        if (listener != null){
-                            listener.onChangeSeek(seekBar.getProgress());
-                        }
-                        if (isPlaying) {
-                            handler.postDelayed(updateProgress, 100);
-                        }
-                    }
-                }
-            });
-        }
-
-        btnBackward15.setOnClickListener(v -> {
-            if (iAmHost) {
-                seekBy(-SEEK_INTERVAL_MS);
             }
-        });
-
-        btnForward15.setOnClickListener(v -> {
-            if (iAmHost) {
-                seekBy(SEEK_INTERVAL_MS);
-            }
-        });
-
-        btnRepeat.setOnClickListener(view -> {
-            if (iAmHost){
-                if (mediaPlayer != null && isPrepared){
-                    isRepeat = !isRepeat;
-                    mediaPlayer.setLooping(isRepeat);
-                    btnRepeat.setImageResource(isRepeat ? R.drawable.ic_true_repeat : R.drawable.ic_no_repeat);
-                }
-            }
-
         });
     }
-
-    private void seekBy(int deltaMs) {
-        if (mediaPlayer == null || !isPrepared) return;
-
-        int current = mediaPlayer.getCurrentPosition();
-        int duration = mediaPlayer.getDuration();
-
-        int newPosition = current + deltaMs;
-
-        if (newPosition < 0) newPosition = 0;
-        if (newPosition > duration) newPosition = duration;
-
-        mediaPlayer.seekTo(newPosition);
-        seekBarAudio.setProgress(newPosition);
-        tvCurrentTime.setText(formatTime(newPosition / 1000) + " / ");
-
-        if (listener != null) {
-            listener.onChangeSeek(newPosition);
-        }
-    }
-
 
     private void togglePlayPause() {
         if (!isPrepared || mediaPlayer == null) return;
@@ -278,7 +218,6 @@ public class AudioPlayerView extends LinearLayout {
             mediaPlayer.seekTo(0);
         }
         seekBarAudio.setProgress(0);
-        tvCurrentTime.setText(R.string._0_00);
         handler.removeCallbacks(updateProgress);
     }
 

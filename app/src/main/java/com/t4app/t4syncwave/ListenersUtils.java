@@ -1,7 +1,6 @@
 package com.t4app.t4syncwave;
 
 import com.t4app.t4syncwave.model.Group;
-import com.t4app.t4syncwave.model.GroupItem;
 
 public class ListenersUtils {
 
@@ -10,7 +9,7 @@ public class ListenersUtils {
     }
 
     public interface OnRoomClickListener {
-        void onRoomClick(GroupItem room);
+        void onRoomClick(Group room);
     }
 
     public interface AddGroupListener{

@@ -3,6 +3,9 @@ package com.t4app.t4syncwave.events;
 import com.t4app.t4syncwave.model.PlaybackState;
 import com.t4app.t4syncwave.model.Room;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 public class PlaybackEvent {
 
     public static final class IAmHost extends PlaybackEvent{
@@ -34,6 +37,18 @@ public class PlaybackEvent {
 
         public String getRoom() {
             return room;
+        }
+    }
+
+    public static final class NewUserJoined extends RemoteParticipantEvent {
+        private final JSONObject user;
+
+        public NewUserJoined(JSONObject user) {
+            this.user = user;
+        }
+
+        public JSONObject getUser() {
+            return user;
         }
     }
 
@@ -89,6 +104,18 @@ public class PlaybackEvent {
 
         public String getUrl() {
             return url;
+        }
+    }
+
+    public static class UsersConnected extends PlaybackEvent{
+        private final JSONArray usersConnected;
+
+        public UsersConnected(JSONArray usersConnected) {
+            this.usersConnected = usersConnected;
+        }
+
+        public JSONArray getUsersConnected() {
+            return usersConnected;
         }
     }
 

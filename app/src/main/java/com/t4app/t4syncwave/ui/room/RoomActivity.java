@@ -132,8 +132,7 @@ public class RoomActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onClick(MusicItem item) {
-
+            public void onClick(MusicItem item, int pos) {
             }
         });
 

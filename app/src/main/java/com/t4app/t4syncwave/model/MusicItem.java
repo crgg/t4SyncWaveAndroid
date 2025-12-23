@@ -35,6 +35,9 @@ public class MusicItem implements Serializable {
 
     private boolean isPlaying;
 
+    public MusicItem() {
+    }
+
     public boolean isPlaying() {
         return isPlaying;
     }

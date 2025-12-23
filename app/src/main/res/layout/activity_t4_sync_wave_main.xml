@@ -20,6 +20,12 @@
             app:navGraph="@navigation/main_nav_graph"
             android:name="androidx.navigation.fragment.NavHostFragment" />
 
+        <com.t4app.t4syncwave.ui.GlobalPlayerView
+            android:id="@+id/globalAudioPlayer"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNav"
             android:background="@color/primary_color"

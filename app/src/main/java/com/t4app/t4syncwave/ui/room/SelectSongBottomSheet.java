@@ -1,6 +1,7 @@
 package com.t4app.t4syncwave.ui.room;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,7 +9,9 @@ import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -16,6 +19,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.t4app.t4syncwave.R;
 import com.t4app.t4syncwave.adapter.MusicAdapter;
 import com.t4app.t4syncwave.model.MusicItem;
+
+import java.util.Objects;
 
 public class SelectSongBottomSheet extends BottomSheetDialogFragment {
 
@@ -27,11 +32,7 @@ public class SelectSongBottomSheet extends BottomSheetDialogFragment {
 
     @Nullable
     @Override
-    public View onCreateView(
-            @NonNull LayoutInflater inflater,
-            @Nullable ViewGroup container,
-            @Nullable Bundle savedInstanceState
-    ) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.bottomsheet_select_song, container, false
         );
 
@@ -43,7 +44,6 @@ public class SelectSongBottomSheet extends BottomSheetDialogFragment {
         adapter = new MusicAdapter(new MusicAdapter.OnMusicActionListener() {
             @Override
             public void onPlay(MusicItem item, int pos) {
-
             }
 
             @Override
@@ -52,12 +52,12 @@ public class SelectSongBottomSheet extends BottomSheetDialogFragment {
             }
 
             @Override
-            public void onClick(MusicItem item) {
+            public void onClick(MusicItem item, int position) {
                 Bundle result = new Bundle();
-                result.putSerializable(SONG_KEY, item);
+                Log.d("BEFORE_CLICK", "onClick: " + item.getId());
+                result.putString(SONG_KEY, item.getId());
 
-                getParentFragmentManager()
-                        .setFragmentResult(RESULT_KEY, result);
+                getParentFragmentManager().setFragmentResult(RESULT_KEY, result);
 
                 dismiss();
             }
@@ -65,6 +65,12 @@ public class SelectSongBottomSheet extends BottomSheetDialogFragment {
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(
+                recyclerView.getContext(), LinearLayoutManager.VERTICAL);
+        dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(),
+                R.drawable.recycler_divider)));
+        recyclerView.addItemDecoration(dividerItemDecoration);
+        adapter.setClicksEnabled(false);
 
         btnClose.setOnClickListener(v -> dismiss());
 

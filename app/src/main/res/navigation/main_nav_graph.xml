@@ -28,7 +28,17 @@
 
     <fragment
         android:id="@+id/listenerFragment"
-        android:name="com.t4app.t4syncwave.ui.main.ListenerFragment" />
+        android:name="com.t4app.t4syncwave.ui.main.ListenerFragment" >
+
+        <action
+            android:id="@+id/action_group_to_groupAdmin"
+            app:destination="@id/groupAdminFragment" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/musicPlayerFragment"
+        android:name="com.t4app.t4syncwave.ui.main.MusicPlayerFragment" />
 
     <fragment
         android:id="@+id/libraryFragment"

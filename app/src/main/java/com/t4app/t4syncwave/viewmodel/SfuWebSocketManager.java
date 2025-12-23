@@ -39,9 +39,9 @@ public class SfuWebSocketManager {
             if (!canSend()) return;
 
             JSONObject json = new JSONObject();
-            json.put("type", "left");
-            json.put("room", room.getRoomName());
-            json.put("userName", room.getUserName());
+            json.put("type", "close");
+            json.put("roomId", room.getRoomName());
+//            json.put("userName", room.getUserName());
 
             sfuClient.send(json.toString());
             Log.d(TAG, "LEFT enviado: " + json);

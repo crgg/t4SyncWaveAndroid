@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.DocumentsContract;
 import android.provider.OpenableColumns;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,21 +16,29 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.t4app.t4syncwave.AppController;
 import com.t4app.t4syncwave.ErrorUtils;
 import com.t4app.t4syncwave.MessagesUtils;
+import com.t4app.t4syncwave.R;
 import com.t4app.t4syncwave.adapter.MusicAdapter;
 import com.t4app.t4syncwave.conection.ApiServices;
-import com.t4app.t4syncwave.conection.model.GetTracksResponse;
 import com.t4app.t4syncwave.databinding.FragmentLibraryBinding;
 import com.t4app.t4syncwave.model.AudioUploadResponse;
 import com.t4app.t4syncwave.model.MusicItem;
+import com.t4app.t4syncwave.ui.AudioPlayerView;
+import com.t4app.t4syncwave.ui.GlobalPlayerView;
+import com.t4app.t4syncwave.viewmodel.GlobalMusicViewModel;
+import com.t4app.t4syncwave.viewmodel.LibraryViewModel;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -48,6 +55,12 @@ public class LibraryFragment extends Fragment {
 
     private FragmentLibraryBinding binding;
     private MusicAdapter adapter;
+
+    private AudioPlayerView audioPlayerView;
+    private GlobalPlayerView globalPlayerView;
+
+    private LibraryViewModel libraryViewModel;
+    private GlobalMusicViewModel globalMusicViewModel;
 
     public LibraryFragment() {
     }
@@ -84,6 +97,10 @@ public class LibraryFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentLibraryBinding.inflate(inflater, container, false);
+
+        audioPlayerView = binding.currentMusicPlay;
+        globalPlayerView = requireActivity().findViewById(R.id.globalAudioPlayer);
+
         return binding.getRoot();
     }
 
@@ -91,28 +108,71 @@ public class LibraryFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        libraryViewModel = new ViewModelProvider(this).get(LibraryViewModel.class);
+        globalMusicViewModel = new ViewModelProvider(requireActivity()).get(GlobalMusicViewModel.class);
+
+        globalPlayerView.setIamHost(true);
         adapter = new MusicAdapter(new MusicAdapter.OnMusicActionListener() {
             @Override
-            public void onPlay(MusicItem item, int position) {
-
-            }
+            public void onPlay(MusicItem item, int position) {}
 
             @Override
             public void onPause(MusicItem item) {
-
             }
 
             @Override
-            public void onClick(MusicItem item) {
+            public void onClick(MusicItem item, int position) {
+                if (globalPlayerView.getVisibility() != View.VISIBLE){
+                    globalPlayerView.setVisibility(View.VISIBLE);
+                }
 
+                if (Boolean.TRUE.equals(globalMusicViewModel.isPlaying().getValue())){
+                    globalPlayerView.pauseLocal();
+                }
+
+                globalMusicViewModel.playSong(item);
+                globalPlayerView.setTitle(item.getTitle());
+                globalPlayerView.setArtist(item.getArtist());
+
+                globalPlayerView.prepareAudio(item.getFileUrl());
             }
         });
+
+        globalMusicViewModel.getMusicList().observe(getViewLifecycleOwner(), musicItems -> {
+            if (musicItems != null && !musicItems.isEmpty()){
+                adapter.updateList(musicItems);
+            }
+        });
+
+        if (globalMusicViewModel.getMusicList().getValue() == null
+                || globalMusicViewModel.getMusicList().getValue().isEmpty()) {
+            libraryViewModel.getAllTracks();
+        }
+
+        if (globalMusicViewModel.getCurrentSong().getValue() != null){
+            if (globalMusicViewModel.getCurrentPosition().getValue() != null){
+                adapter.compareItem(globalMusicViewModel.getCurrentPosition().getValue(), globalMusicViewModel.getCurrentSong().getValue());
+            }
+        }
+
+        libraryViewModel.getTracks().observe(getViewLifecycleOwner(), musicItems -> {
+            if (musicItems != null && !musicItems.isEmpty()) {
+//                adapter.updateList(musicItems);
+                globalMusicViewModel.setMusicList(musicItems);
+            }
+        });
+
 
         binding.musicListRv.setLayoutManager(new LinearLayoutManager(view.getContext()));
         binding.musicListRv.setAdapter(adapter);
 
-        getAllTracks();
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(
+                binding.musicListRv.getContext(), LinearLayoutManager.VERTICAL);
+        dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(),
+                R.drawable.recycler_divider)));
+        binding.musicListRv.addItemDecoration(dividerItemDecoration);
 
+        adapter.setClicksEnabled(true);
 
         binding.btnAdd.setOnClickListener(view1 -> {
             openAudioPicker();
@@ -141,7 +201,6 @@ public class LibraryFragment extends Fragment {
                     if (body != null) {
                         if (body.isStatus() && body.getAudio() != null) {
                             adapter.addSong(body.getAudio());
-                            binding.currentMusicPlay.setVisibility(View.VISIBLE);
                         } else {
                             if (body.getError() != null) {
                                 MessagesUtils.showErrorDialog(requireActivity(), body.getError());
@@ -184,7 +243,6 @@ public class LibraryFragment extends Fragment {
         };
     }
 
-
     @Nullable
     public static String getFileNameFromUri(Context context, Uri uri) {
         String result = null;
@@ -217,37 +275,6 @@ public class LibraryFragment extends Fragment {
         }
 
         return result;
-    }
-
-
-    private void getAllTracks(){
-        ApiServices apiServices = AppController.getApiServices();
-        Call<GetTracksResponse> call = apiServices.getUserTracks();
-        call.enqueue(new Callback<>() {
-            @Override
-            public void onResponse(Call<GetTracksResponse> call, Response<GetTracksResponse> response) {
-                if (response.isSuccessful()) {
-                    GetTracksResponse body = response.body();
-                    if (body != null) {
-                        if (body.isStatus() && body.getAudio() != null) {
-                            adapter.updateList(body.getAudio());
-                            binding.currentMusicPlay.setVisibility(View.VISIBLE);
-                        } else {
-                            if (body.getError() != null && body.getError().contains("No audio found")) {
-                                binding.noTracksTv.setVisibility(View.VISIBLE);
-                                binding.currentMusicPlay.setVisibility(View.GONE);
-                            }
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<GetTracksResponse> call, Throwable t) {
-                Log.e(TAG, "onFailure: add group", t);
-                MessagesUtils.showErrorDialog(requireActivity(), ErrorUtils.parseError(t));
-            }
-        });
     }
 
     private void openAudioPicker() {

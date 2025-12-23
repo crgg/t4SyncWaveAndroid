@@ -40,7 +40,7 @@ public class Group implements Serializable {
     private List<Member> members;
 
     @SerializedName("current_track")
-    private Track currentTrack;
+    private MusicItem currentTrack;
 
     public String getCode() {
         return code;
@@ -130,11 +130,11 @@ public class Group implements Serializable {
         this.members = members;
     }
 
-    public Track getCurrentTrack() {
+    public MusicItem getCurrentTrack() {
         return currentTrack;
     }
 
-    public void setCurrentTrack(Track currentTrack) {
+    public void setCurrentTrack(MusicItem currentTrack) {
         this.currentTrack = currentTrack;
     }
 }

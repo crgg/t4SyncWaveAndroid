@@ -1,141 +1,107 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
-    android:background="@color/background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.room.RoomActivity">
+    android:background="@color/background"
+    tools:context=".ui.main.GroupsFragment">
 
-
-    <LinearLayout
-        android:id="@+id/header"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="8dp"
-        app:layout_scrollFlags="scroll|enterAlways">
-
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/listener"
-            android:textColor="@color/primary_color"
-            android:textStyle="bold"
-            android:textSize="25sp"
-            android:maxLines="1"
-            android:ellipsize="end"/>
-
-    </LinearLayout>
-
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/musicListRv"
-        app:layout_constraintTop_toBottomOf="@id/header"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
-        app:layout_constraintBottom_toTopOf="@id/actions_container"
-        android:layout_width="match_parent"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp"
-        android:layout_height="0dp"/>
-
-
-    <androidx.appcompat.widget.AppCompatImageButton
-        android:id="@+id/disconnectRoom"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/musicListRv"
-        app:layout_constraintEnd_toEndOf="@id/musicListRv"
-        android:src="@drawable/ic_exit"
-        android:background="@null"
-        android:scaleType="fitCenter"
-        android:layout_width="48dp"
-        android:layout_height="48dp"/>
-
-
-    <LinearLayout
-        android:id="@+id/actions_container"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="30dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:background="@color/background">
 
         <LinearLayout
+            android:id="@+id/header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="4dp">
+            android:gravity="center_vertical"
+            android:padding="8dp"
+            app:layout_scrollFlags="scroll|enterAlways">
 
             <TextView
-                android:id="@+id/tvCurrentTime"
-                android:layout_width="wrap_content"
+                android:id="@+id/title"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:textSize="12sp"
-                android:textColor="@color/gray_hint" />
+                android:layout_weight="1"
+                android:text="Listening"
+                android:textColor="@color/primary_color"
+                android:textStyle="bold"
+                android:textSize="25sp"
+                android:maxLines="1"
+                android:ellipsize="end"/>
 
-            <TextView
-                android:id="@+id/tvTotalTime"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnFilter"
+                android:visibility="gone"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="@color/gray_hint" />
+                android:layout_height="40dp"
+                android:layout_marginEnd="10dp"
+                android:text="@string/created"
+                android:textColor="@color/gray_hint"
+                app:icon="@drawable/ic_arrow_down"
+                app:iconTint="@color/primary_color"
+                app:iconGravity="textEnd"
+                app:cornerRadius="20dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/primary_color"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/btnAdd"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_add_user"
+                android:tint="@color/white"
+                android:background="@drawable/bg_circle"
+                android:elevation="6dp"
+                android:padding="8dp"
+                android:scaleType="centerInside"/>
+
+
 
         </LinearLayout>
 
-        <SeekBar
-            android:id="@+id/seekBarAudio"
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/background"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:progressBackgroundTint="@color/gray_hint"
-            android:progressTint="@color/primary_color"
-            android:thumbTint="@color/primary_color"
-            android:max="100"
-            android:progress="0" />
+            android:layout_height="match_parent">
 
-        <LinearLayout
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginTop="25dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/roomsRv"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="4dp"
+                android:padding="5dp"
+                android:clipToPadding="false"/>
 
-            <androidx.appcompat.widget.AppCompatImageButton
-                android:src="@drawable/ic_forward"
-                android:layout_marginEnd="50dp"
-                android:background="@null"
-                android:rotation="180"
-                android:layout_width="48dp"
-                android:layout_height="48dp"/>
+            <TextView
+                android:id="@+id/noGroupsTv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/no_groups_have_been_nadded_yet"
+                android:textSize="19sp"
+                android:textColor="@color/text_color"
+                android:gravity="center"
+                android:visibility="gone"/>
 
-            <androidx.appcompat.widget.AppCompatImageButton
-                android:id="@+id/btnPlayPause"
-                android:src="@drawable/ic_play"
-                android:background="@null"
-                android:layout_width="48dp"
-                android:layout_marginEnd="50dp"
-                android:layout_height="48dp"/>
+        </FrameLayout>
 
-            <androidx.appcompat.widget.AppCompatImageButton
-                android:src="@drawable/ic_forward"
-                android:background="@null"
-                android:layout_width="48dp"
-                android:layout_height="48dp"/>
-        </LinearLayout>
-    </LinearLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

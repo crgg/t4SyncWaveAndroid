@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
@@ -76,10 +75,6 @@ public class GroupsFragment extends Fragment {
                 binding.btnFilter.setText(R.string.created);
                 myGroups = true;
                 getMyGroups();
-            }else {
-                binding.btnFilter.setText(R.string.joined);
-                myGroups = false;
-                getAllGroups();
             }
         });
 
@@ -98,30 +93,10 @@ public class GroupsFragment extends Fragment {
         binding.swipeRefresh.setOnRefreshListener(() -> {
             if (myGroups){
                 getMyGroups();
-            }else {
-                getAllGroups();
             }
         });
 
         binding.btnAdd.setOnClickListener(v -> MessagesUtils.showAddGroupLayout(requireActivity(), this::addGroup));
-
-        binding.btnFilter.setOnClickListener(view1 -> {
-            PopupMenu popup = new PopupMenu(requireActivity(), binding.btnFilter);
-            popup.getMenuInflater().inflate(R.menu.menu_group_filter, popup.getMenu());
-
-            popup.setOnMenuItemClickListener(item -> {
-                if (item.getItemId() == R.id.filter_my_groups) {
-                    viewModel.setFilter(GroupsViewModel.Filter.MY_GROUPS);
-                    return true;
-                } else if (item.getItemId() == R.id.filter_groups_listens) {
-                    viewModel.setFilter(GroupsViewModel.Filter.ALL_GROUPS);
-                    return true;
-                }
-                return false;
-            });
-
-            popup.show();
-        });
 
     }
 
@@ -154,41 +129,6 @@ public class GroupsFragment extends Fragment {
     private void getMyGroups(){
         ApiServices apiServices = AppController.getApiServices();
         Call<ResponseGetGroups> call = apiServices.getGroupsList();
-        call.enqueue(new Callback<>() {
-            @Override
-            public void onResponse(@NonNull Call<ResponseGetGroups> call, @NonNull Response<ResponseGetGroups> response) {
-                if (response.isSuccessful()) {
-                    ResponseGetGroups body = response.body();
-                    if (body != null) {
-                        if (body.isStatus()){
-                            if (body.getGroups() != null && !body.getGroups().isEmpty()){
-                                binding.noGroupsTv.setVisibility(View.GONE);
-                                binding.roomsRv.setVisibility(View.VISIBLE);
-                                adapter.updateList(body.getGroups());
-                            }
-                        }else {
-                            if (body.getError() != null && body.getError().contains("No groups found")){
-                                binding.noGroupsTv.setVisibility(View.VISIBLE);
-                                binding.roomsRv.setVisibility(View.GONE);
-                            }
-                        }
-                    }
-                    binding.swipeRefresh.setRefreshing(false);
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<ResponseGetGroups> call, @NonNull Throwable t) {
-                Log.e(TAG, "onFailure: GET GROUPS" + t.getMessage() );
-                binding.swipeRefresh.setRefreshing(false);
-            }
-        });
-    }
-
-
-    private void getAllGroups(){
-        ApiServices apiServices = AppController.getApiServices();
-        Call<ResponseGetGroups> call = apiServices.getAllGroupsList();
         call.enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<ResponseGetGroups> call, @NonNull Response<ResponseGetGroups> response) {
