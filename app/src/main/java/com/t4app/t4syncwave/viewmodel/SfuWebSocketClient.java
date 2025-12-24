@@ -5,6 +5,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.concurrent.TimeUnit;
+
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -12,12 +14,15 @@ import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
 
 public class SfuWebSocketClient extends WebSocketListener {
-    private static final String TAG = "SFU_WEB_SOCKET_CLIENT";
 
-    private final OkHttpClient client;
+    private static final String TAG = "WEB_SOCKET_CLIENT";
+    private static SfuWebSocketClient instance;
+
     private WebSocket webSocket;
+    private final OkHttpClient client;
+    public boolean isConnected = false;
 
-    private boolean isConnected = false;
+    private Callback callback;
 
     public interface Callback {
         void onConnected();
@@ -26,67 +31,66 @@ public class SfuWebSocketClient extends WebSocketListener {
         void onFailure(Throwable t);
     }
 
-    private final Callback callback;
+    public SfuWebSocketClient() {
+        client = new OkHttpClient.Builder()
+                .pingInterval(15, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(true)
+                .build();
+    }
 
-    public SfuWebSocketClient(Callback callback) {
-        this.client = new OkHttpClient();
+
+    public void setCallback(Callback callback) {
         this.callback = callback;
     }
 
-    public void connect(String url){
+    public void connect(String url) {
+        if (webSocket != null) return;
+
         Request request = new Request.Builder()
                 .url(url)
                 .build();
+
         webSocket = client.newWebSocket(request, this);
     }
 
-    public void send(String msg){
-        if (webSocket != null){
-            Log.d(TAG, "SEND MESSAGE: " + msg);
+    public void send(String msg) {
+        if (webSocket != null && isConnected) {
+            Log.d(TAG, "send: MESSAGE " + msg);
             webSocket.send(msg);
         }
     }
 
-    public void close(){
-        if (webSocket != null){
-            isConnected = false;
+    public void close() {
+        if (webSocket != null) {
             webSocket.close(1000, "Closing");
+            webSocket = null;
+            isConnected = false;
         }
-    }
-
-    public boolean isConnected() {
-        return isConnected;
     }
 
     @Override
     public void onOpen(@NonNull WebSocket webSocket, @NonNull Response response) {
         isConnected = true;
-        if (callback != null){
-            callback.onConnected();
-        }
-    }
-
-    @Override
-    public void onClosing(@NonNull WebSocket webSocket, int code, @NonNull String reason) {
-        isConnected = false;
-        webSocket.close(code, reason);
-        if (callback != null){
-            callback.onDisconnected();
-        }
+        if (callback != null) callback.onConnected();
     }
 
     @Override
     public void onMessage(@NonNull WebSocket webSocket, @NonNull String text) {
-        if (callback != null) {
-            callback.onMessage(text);
-        }
+        if (callback != null) callback.onMessage(text);
+    }
+
+    @Override
+    public void onClosed(@NonNull WebSocket webSocket, int code, @NonNull String reason) {
+        isConnected = false;
+        this.webSocket = null;
+        if (callback != null) callback.onDisconnected();
     }
 
     @Override
     public void onFailure(@NonNull WebSocket webSocket, @NonNull Throwable t, @Nullable Response response) {
         isConnected = false;
-        if (callback != null){
-            callback.onFailure(t);
-        }
+        this.webSocket = null;
+        if (callback != null) callback.onFailure(t);
     }
 }
+

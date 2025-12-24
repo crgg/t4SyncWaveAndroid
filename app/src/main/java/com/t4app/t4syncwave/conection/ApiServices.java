@@ -7,6 +7,7 @@ import com.t4app.t4syncwave.conection.model.GetTracksResponse;
 import com.t4app.t4syncwave.conection.model.LoginResponse;
 import com.t4app.t4syncwave.conection.model.ResponseGetGroups;
 import com.t4app.t4syncwave.model.AudioUploadResponse;
+import com.t4app.t4syncwave.model.JoinGroupResponse;
 import com.t4app.t4syncwave.model.MusicItem;
 import com.t4app.t4syncwave.model.TrackToGroupResponse;
 
@@ -49,6 +50,11 @@ public interface ApiServices {
 
     @POST(ApiConfig.ADD_MEMBER)
     Call<AddMemberResponse> addMember(
+            @Body Map<String, Object> body
+    );
+
+    @POST(ApiConfig.JOIN_GROUP)
+    Call<JoinGroupResponse> joinGroup(
             @Body Map<String, Object> body
     );
 

@@ -12,6 +12,7 @@ public class ApiConfig {
     public static final String GET_ALL_GROUPS = "api/groups/groups-listens";
     public static final String GET_GROUP_BY_ID = "api/groups/get/{uuid}";
     public static final String ADD_GROUP = "api/groups/create";
+    public static final String JOIN_GROUP = "api/groups/join";
     public static final String ADD_MEMBER = "api/groups/add-member";
     public static final String ADD_TRACK_TO_GROUP = "api/audio_test/add-track-to-group";
 

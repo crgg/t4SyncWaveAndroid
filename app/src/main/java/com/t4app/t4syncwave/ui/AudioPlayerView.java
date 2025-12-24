@@ -2,7 +2,6 @@ package com.t4app.t4syncwave.ui;
 
 import android.content.Context;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -13,8 +12,11 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
+
 import com.t4app.t4syncwave.ListenersUtils;
 import com.t4app.t4syncwave.R;
+import com.t4app.t4syncwave.SafeClickListener;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -23,11 +25,15 @@ public class AudioPlayerView extends LinearLayout {
     private static final String TAG = "AUDIO_PLAYER_VIEW";
     private static final int SEEK_INTERVAL_MS = 15_000;
 
-
     private ImageButton btnPlayPause;
     private ImageButton btnRepeat;
     private ImageButton btnBackward15;
     private ImageButton btnForward15;
+    private ImageButton btnSound;
+
+    private ConstraintLayout containerActions;
+    private LinearLayout containerMute;
+
     private SeekBar seekBarAudio;
     private TextView tvCurrentTime;
     private TextView songName;
@@ -35,9 +41,15 @@ public class AudioPlayerView extends LinearLayout {
 
     private MediaPlayer mediaPlayer;
     private Handler handler = new Handler();
+    private float lastVolume = 1f;
+    private boolean isMuted = false;
+
+    private boolean isUserSeeking = false;
     private boolean isPlaying = false;
     private boolean isPrepared = false;
     private boolean isRepeat = false;
+
+    private int startPosition = 0;
 
     private ListenersUtils.PlaybackActionListener listener;
 
@@ -50,10 +62,13 @@ public class AudioPlayerView extends LinearLayout {
     private Runnable updateProgress = new Runnable() {
         @Override
         public void run() {
-            if (mediaPlayer != null && isPlaying) {
+            if (mediaPlayer != null && isPlaying && !isUserSeeking) {
                 int currentPosition = mediaPlayer.getCurrentPosition();
                 seekBarAudio.setProgress(currentPosition);
                 tvCurrentTime.setText(formatTime(currentPosition / 1000) + " / ");
+                listener.onChangePosition(currentPosition);
+
+                Log.d(TAG, "run: UPDATE PROGRESS CURRENT POST IS " + currentPosition);
                 handler.postDelayed(this, 100);
             }
         }
@@ -89,6 +104,10 @@ public class AudioPlayerView extends LinearLayout {
         tvCurrentTime = view.findViewById(R.id.tvCurrentTime);
         tvTotalTime = view.findViewById(R.id.tvTotalTime);
 
+        containerActions = view.findViewById(R.id.containerActions);
+        containerMute = view.findViewById(R.id.containerMute);
+        btnSound = view.findViewById(R.id.btnMute);
+
         btnPlayPause.setEnabled(false);
         seekBarAudio.setEnabled(false);
     }
@@ -106,7 +125,7 @@ public class AudioPlayerView extends LinearLayout {
         }
     }
 
-    public void prepareAudio(String url, boolean playing) {
+    public void prepareAudio(String url) {
         cleanupMediaPlayer();
 
         mediaPlayer = new MediaPlayer();
@@ -118,6 +137,15 @@ public class AudioPlayerView extends LinearLayout {
             mediaPlayer.setOnPreparedListener(mp -> {
                 isPrepared = true;
                 setupAudioPlayer();
+
+                if (startPosition > 0){
+                    mp.seekTo(startPosition);
+                    seekBarAudio.setProgress(startPosition);
+                    tvCurrentTime.setText(formatTime(startPosition / 1000) + " / ");
+                }
+
+                applyMuteState();
+
                 if (iAmHost){
                     btnPlayPause.setEnabled(true);
                 }
@@ -137,11 +165,60 @@ public class AudioPlayerView extends LinearLayout {
         }
     }
 
+    public void setStartPosition(int startPosition) {
+        this.startPosition = startPosition;
+    }
+
+    private void applyMuteState() {
+        if (mediaPlayer == null) return;
+
+        if (isMuted) {
+            mediaPlayer.setVolume(0f, 0f);
+            btnSound.setImageResource(R.drawable.ic_mute);
+        } else {
+            mediaPlayer.setVolume(lastVolume, lastVolume);
+            btnSound.setImageResource(R.drawable.ic_sound);
+        }
+    }
+
+    private void muteAudio() {
+        if (mediaPlayer == null || isMuted) return;
+
+        lastVolume = 1f;
+        isMuted = true;
+        applyMuteState();
+    }
+
+    private void unmuteAudio() {
+        if (mediaPlayer == null) return;
+
+        isMuted = false;
+        applyMuteState();
+    }
+
     private void setupListeners() {
-        btnPlayPause.setOnClickListener(v -> {
-            if (isPrepared) {
-                if (iAmHost){
-                    togglePlayPause();
+        btnPlayPause.setOnClickListener(new SafeClickListener() {
+            @Override
+            public void onSafeClick(View v) {
+                if (isPrepared) {
+                    if (iAmHost){
+                        togglePlayPause();
+                    }
+                }
+            }
+        });
+
+        btnSound.setOnClickListener(new SafeClickListener() {
+            @Override
+            public void onSafeClick(View v) {
+                if (isPrepared){
+                    if (!iAmHost){
+                        if (isMuted){
+                            unmuteAudio();
+                        }else {
+                            muteAudio();
+                        }
+                    }
                 }
             }
         });
@@ -151,39 +228,47 @@ public class AudioPlayerView extends LinearLayout {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                     if (fromUser && mediaPlayer != null) {
-                        tvCurrentTime.setText(formatTime(progress / 1000)+ " / ");
+                        tvCurrentTime.setText(formatTime(progress / 1000) + " / ");
                     }
                 }
 
                 @Override
                 public void onStartTrackingTouch(SeekBar seekBar) {
+                    isUserSeeking = true;
                     handler.removeCallbacks(updateProgress);
                 }
 
                 @Override
                 public void onStopTrackingTouch(SeekBar seekBar) {
+                    isUserSeeking = false;
                     if (mediaPlayer != null && isPrepared) {
                         mediaPlayer.seekTo(seekBar.getProgress());
-                        if (listener != null){
-                            listener.onChangeSeek(seekBar.getProgress());
-                        }
                         if (isPlaying) {
                             handler.postDelayed(updateProgress, 100);
+                        }
+                        if (listener != null){
+                            listener.onChangeSeek(seekBar.getProgress());
                         }
                     }
                 }
             });
         }
 
-        btnBackward15.setOnClickListener(v -> {
-            if (iAmHost) {
-                seekBy(-SEEK_INTERVAL_MS);
+        btnBackward15.setOnClickListener(new SafeClickListener() {
+            @Override
+            public void onSafeClick(View v) {
+                if (iAmHost) {
+                    seekBy(-SEEK_INTERVAL_MS);
+                }
             }
         });
 
-        btnForward15.setOnClickListener(v -> {
-            if (iAmHost) {
-                seekBy(SEEK_INTERVAL_MS);
+        btnForward15.setOnClickListener(new SafeClickListener() {
+            @Override
+            public void onSafeClick(View v) {
+                if (iAmHost) {
+                    seekBy(SEEK_INTERVAL_MS);
+                }
             }
         });
 
@@ -195,7 +280,6 @@ public class AudioPlayerView extends LinearLayout {
                     btnRepeat.setImageResource(isRepeat ? R.drawable.ic_true_repeat : R.drawable.ic_no_repeat);
                 }
             }
-
         });
     }
 
@@ -312,6 +396,13 @@ public class AudioPlayerView extends LinearLayout {
 
     public void setIamHost(boolean status){
         iAmHost = status;
+        if (!iAmHost){
+            containerMute.setVisibility(View.VISIBLE);
+            containerActions.setVisibility(View.GONE);
+        }else{
+            containerMute.setVisibility(View.GONE);
+            containerActions.setVisibility(View.VISIBLE);
+        }
     }
 
     public MediaPlayer getMediaPlayer() {
@@ -320,6 +411,7 @@ public class AudioPlayerView extends LinearLayout {
 
     public void setProgress(int progress){
         if (mediaPlayer != null){
+            Log.d(TAG, "setProgress: NEW PROGRESS " + progress);
             mediaPlayer.seekTo(progress);
             if (isPlaying) {
                 handler.postDelayed(updateProgress, 100);

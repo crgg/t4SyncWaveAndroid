@@ -13,14 +13,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.gson.Gson;
 import com.t4app.t4syncwave.AppController;
+import com.t4app.t4syncwave.ErrorUtils;
 import com.t4app.t4syncwave.ListenersUtils;
 import com.t4app.t4syncwave.MessagesUtils;
 import com.t4app.t4syncwave.R;
 import com.t4app.t4syncwave.adapter.GroupAdapter;
 import com.t4app.t4syncwave.conection.ApiServices;
+import com.t4app.t4syncwave.conection.model.AddGroupResponse;
+import com.t4app.t4syncwave.conection.model.AddMemberResponse;
 import com.t4app.t4syncwave.conection.model.ResponseGetGroups;
 import com.t4app.t4syncwave.databinding.FragmentListenerBinding;
+import com.t4app.t4syncwave.model.JoinGroupResponse;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -74,6 +82,7 @@ public class ListenerFragment extends Fragment {
 
         binding.btnAdd.setOnClickListener(view1 -> MessagesUtils.showJoinGroupByCode(requireActivity(),
                 groupCode -> {
+            addGroupByCode(groupCode.toUpperCase());
             //TODO:
         }));
 
@@ -111,6 +120,56 @@ public class ListenerFragment extends Fragment {
             public void onFailure(@NonNull Call<ResponseGetGroups> call, @NonNull Throwable t) {
                 Log.e(TAG, "onFailure: GET GROUPS" + t.getMessage() );
                 binding.swipeRefresh.setRefreshing(false);
+            }
+        });
+    }
+
+
+    private void addGroupByCode(String groupCode){
+        ApiServices apiServices = AppController.getApiServices();
+        Map<String, Object> data = new HashMap<>();
+        data.put("code", groupCode);
+        Call<JoinGroupResponse> call = apiServices.joinGroup(data);
+        call.enqueue(new Callback<>() {
+            @Override
+            public void onResponse(Call<JoinGroupResponse> call, Response<JoinGroupResponse> response) {
+                if (response.isSuccessful()) {
+                    JoinGroupResponse body = response.body();
+                    if (body != null) {
+                        if (body.isStatus() && body.getGroup() != null) {
+                            adapter.addGroup(body.getGroup());
+                        } else {
+                            if (body.getMsg() != null) {
+                                MessagesUtils.showErrorDialog(requireActivity(), body.getMsg());
+                            } else {
+                                MessagesUtils.showErrorDialog(requireActivity(), "Unknow Error Join Group");
+                            }
+                        }
+                    }
+                }else{
+                    try {
+                        if (response.errorBody() != null) {
+                            String errorJson = response.errorBody().string();
+
+                            JoinGroupResponse error =
+                                    new Gson().fromJson(errorJson, JoinGroupResponse.class);
+
+                            if (error != null && error.getMsg() != null) {
+                                MessagesUtils.showErrorDialog(requireActivity(), error.getMsg());
+                            } else {
+                                MessagesUtils.showErrorDialog(requireActivity(), "Error Join Group");
+                            }
+                        }
+                    } catch (Exception e) {
+                        MessagesUtils.showErrorDialog(requireActivity(), "Unexpected Error");
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JoinGroupResponse> call, Throwable t) {
+                Log.e(TAG, "JOIN GROUP ERROR  " +  t.getLocalizedMessage());
+                MessagesUtils.showErrorDialog(requireActivity(), ErrorUtils.parseError(t));
             }
         });
     }

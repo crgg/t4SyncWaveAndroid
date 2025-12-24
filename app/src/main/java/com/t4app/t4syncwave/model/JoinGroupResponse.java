@@ -1,13 +1,11 @@
-package com.t4app.t4syncwave.conection.model;
+package com.t4app.t4syncwave.model;
 
 import com.google.gson.annotations.SerializedName;
-import com.t4app.t4syncwave.model.Group;
-import com.t4app.t4syncwave.model.Member;
 
 import java.io.Serializable;
 import java.util.List;
 
-public class AddGroupResponse implements Serializable {
+public class JoinGroupResponse implements Serializable {
 
     @SerializedName("status")
     private boolean status;
@@ -19,7 +17,7 @@ public class AddGroupResponse implements Serializable {
     private Group group;
 
     @SerializedName("member")
-    private List<Member> member;
+    private Member member;
 
     public String getMsg() {
         return msg;
@@ -45,11 +43,11 @@ public class AddGroupResponse implements Serializable {
         this.group = group;
     }
 
-    public List<Member> getMember() {
+    public Member getMember() {
         return member;
     }
 
-    public void setMember(List<Member> member) {
+    public void setMember(Member member) {
         this.member = member;
     }
 }

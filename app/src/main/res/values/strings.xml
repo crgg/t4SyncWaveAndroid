@@ -38,4 +38,7 @@
     <string name="dj">DJ</string>
     <string name="active">Active</string>
     <string name="inactive">Inactive</string>
+    <string name="group_code">Group Code</string>
+    <string name="you">You</string>
+    <string name="online">Online</string>
 </resources>

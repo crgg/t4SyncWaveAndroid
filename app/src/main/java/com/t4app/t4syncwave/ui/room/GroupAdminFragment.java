@@ -4,6 +4,10 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -15,16 +19,10 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
 import com.t4app.t4syncwave.AppController;
 import com.t4app.t4syncwave.ErrorUtils;
 import com.t4app.t4syncwave.ListenersUtils;
 import com.t4app.t4syncwave.MessagesUtils;
-import com.t4app.t4syncwave.PermissionUtil;
 import com.t4app.t4syncwave.R;
 import com.t4app.t4syncwave.SessionManager;
 import com.t4app.t4syncwave.adapter.MemberAdapter;
@@ -34,7 +32,6 @@ import com.t4app.t4syncwave.conection.model.GetGroupByIdResponse;
 import com.t4app.t4syncwave.databinding.FragmentGroupAdminBinding;
 import com.t4app.t4syncwave.events.PlaybackEvent;
 import com.t4app.t4syncwave.events.PlaybackViewEvent;
-import com.t4app.t4syncwave.model.AudioUploadResponse;
 import com.t4app.t4syncwave.model.Group;
 import com.t4app.t4syncwave.model.Member;
 import com.t4app.t4syncwave.model.MusicItem;
@@ -42,13 +39,12 @@ import com.t4app.t4syncwave.model.PlaybackState;
 import com.t4app.t4syncwave.model.Room;
 import com.t4app.t4syncwave.model.TrackToGroupResponse;
 import com.t4app.t4syncwave.ui.AudioPlayerView;
-import com.t4app.t4syncwave.viewmodel.PlaybackManager;
 import com.t4app.t4syncwave.viewmodel.PlaybackViewModel;
-import com.t4app.t4syncwave.viewmodel.PlaybackViewModelFactory;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,12 +61,12 @@ public class GroupAdminFragment extends Fragment {
 
     private FragmentGroupAdminBinding binding;
     private MemberAdapter adapter;
+    private MemberAdapter adapterOffline;
     private SessionManager sessionManager;
 
     private String groupSelected;
     private Group globalGroup;
     private boolean iAmOwner;
-    private Member djGroup;
 
     private PlaybackState state;
     private PlaybackViewModel viewModel;
@@ -110,7 +106,12 @@ public class GroupAdminFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        GroupAdminFragmentArgs args = GroupAdminFragmentArgs.fromBundle(getArguments());
 
+        viewModel = new ViewModelProvider(this).get(PlaybackViewModel.class);
+
+        groupSelected = args.getGroupId();
+        iAmOwner = args.getIsAdmin();
         sessionManager = SessionManager.getInstance();
     }
 
@@ -119,34 +120,102 @@ public class GroupAdminFragment extends Fragment {
                              Bundle savedInstanceState) {
        binding = FragmentGroupAdminBinding.inflate(inflater, container, false);
        adapter = new MemberAdapter(requireActivity());
+       adapterOffline = new MemberAdapter(requireActivity());
+
+       binding.membersRv.setLayoutManager(new LinearLayoutManager(binding.getRoot().getContext()));
+       binding.membersRv.setAdapter(adapter);
+
+       binding.offlineMembersRv.setLayoutManager(new LinearLayoutManager(binding.getRoot().getContext()));
+       binding.offlineMembersRv.setAdapter(adapterOffline);
+
+       if (groupSelected != null){
+           getGroupById(group -> {
+               globalGroup = group;
+               setupRoom(group);
+               setupPlayback(group);
+
+               if (group.getMembers().size() == 1){
+                   binding.separation.setVisibility(View.GONE);
+               }
+
+               for (Member member : group.getMembers()){
+                   if (member.getRole().equalsIgnoreCase("dj")){
+                       binding.djNameTv.setText(member.getName());
+                       binding.djEmailTv.setText(member.getRole());
+                       group.getMembers().remove(member);
+                       break;
+                   }
+               }
+
+               if (group.getMembers().size() > 1){
+                   group.getMembers().removeIf(member ->
+                           member.getName().equalsIgnoreCase(sessionManager.getName()) &&
+                                   member.getEmail().equalsIgnoreCase(sessionManager.getUserEmail()));
+               }
+
+               adapterOffline.setMembers(group.getMembers());
+
+               if (iAmOwner){
+                   binding.statusOnlineIv.setImageTintList(ContextCompat.getColorStateList(requireContext(), R.color.green_success));
+               }
+            });
+        }
+
        return binding.getRoot();
     }
+
+    private void setupRoom(Group group) {
+        room.setRoomName(group.getId());
+        room.setUserName(sessionManager.getName());
+        room.setUserId(sessionManager.getUserId());
+        room.setRole(iAmOwner ? "dj" : "member");
+
+        binding.groupName.setText(group.getName());
+        binding.codeGroupValue.setText(group.getCode());
+
+
+        Log.d(TAG, "ROOM TO JOIN : " + group.getName());
+        viewModel.processInput(new PlaybackViewEvent.Connect(room));
+    }
+
+    private void setupPlayback(Group group){
+        if (group.getCurrentTrack() != null){
+            binding.containerNoMusic.setVisibility(View.GONE);
+            binding.audioPlayerView.setVisibility(View.VISIBLE);
+
+            currentTrack = group.getCurrentTrack();
+            audioPlayerView.setTitle(group.getName());
+            audioPlayerView.prepareAudio(currentTrack.getFileUrl());
+
+            if (iAmOwner){
+                state = new PlaybackState.Builder(
+                        "playback-state",
+                        room.getRoomName(),
+                        room.getUserName(),
+                        0,
+                        0.0)
+                        .setPlaying(false)
+                        .setTrackUrl(currentTrack.getFileUrl())
+                        .setPosition(0.0)
+                        .build();
+            }
+        }else{
+            binding.containerNoMusic.setVisibility(View.VISIBLE);
+            binding.audioPlayerView.setVisibility(View.GONE);
+        }
+    }
+
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        GroupAdminFragmentArgs args = GroupAdminFragmentArgs.fromBundle(getArguments());
-
-        groupSelected = args.getGroupId();
-        iAmOwner = args.getIsAdmin();
-
         audioPlayerView = binding.audioPlayerView;
 
         room = new Room();
 
-        PlaybackManager playbackManager = new PlaybackManager(requireActivity());
-        PermissionUtil permissionUtil = new PermissionUtil(requireActivity());
-
-        PlaybackViewModelFactory factory = new PlaybackViewModelFactory(playbackManager, permissionUtil);
-
-        viewModel = new ViewModelProvider(this, factory)
-                .get(PlaybackViewModel.class);
 
         observeEvents();
-
-        binding.membersRv.setLayoutManager(new LinearLayoutManager(view.getContext()));
-        binding.membersRv.setAdapter(adapter);
 
         binding.btnBack.setOnClickListener(view1 ->{
             finish();
@@ -165,12 +234,10 @@ public class GroupAdminFragment extends Fragment {
         getParentFragmentManager().setFragmentResultListener(SelectSongBottomSheet.RESULT_KEY, getViewLifecycleOwner(),
             (key, bundle) -> {
                 String trackId = bundle.getString(SelectSongBottomSheet.SONG_KEY);
-                Log.d(TAG, "onViewCreated: RECEIVEEERDD " + trackId );
                 if (trackId != null){
                     setAudioInGroup(trackId);
                 }
-        }
-        );
+        });
 
 
         audioPlayerView.setPlaybackActionListener(new ListenersUtils.PlaybackActionListener() {
@@ -198,12 +265,18 @@ public class GroupAdminFragment extends Fragment {
             public void onChangeSeek(int progress) {
                 if (iAmOwner){
                     state = state.copy()
-                            .setTimestamp(progress)
+                            .setPosition(progress / 1000.0)
                             .build();
 
-                    Log.d(TAG, "onChangeSeek: " + state.isPlaying());
                     viewModel.processInput(new PlaybackViewEvent.ChangeState(state));
                 }
+            }
+
+            @Override
+            public void onChangePosition(int progress) {
+                state = state.copy()
+                        .setPosition(progress / 1000.0)
+                        .build();
             }
         });
 
@@ -214,73 +287,9 @@ public class GroupAdminFragment extends Fragment {
             sheet.show(getParentFragmentManager(), "SelectSongBottomSheet");
         });
 
-        if (groupSelected != null){
-            getGroupById(group -> {
-                globalGroup = group;
-
-                room.setRoomName(group.getId());
-                room.setUserName(sessionManager.getName());
-                room.setUserId(sessionManager.getUserId());
-                room.setRole(iAmOwner ? "dj" : "member");
-
-                binding.groupName.setText(group.getName());
-
-                viewModel.processInput(new PlaybackViewEvent.Connect(room));
-
-                if (group.getCurrentTrack() != null){
-                    binding.containerNoMusic.setVisibility(View.GONE);
-                    binding.audioPlayerView.setVisibility(View.VISIBLE);
-
-                    currentTrack = group.getCurrentTrack();
-                    audioPlayerView.setTitle(group.getName());
-                    audioPlayerView.prepareAudio(currentTrack.getFileUrl(), iAmOwner);
-
-                    if (iAmOwner){
-                        state = new PlaybackState.Builder(
-                                "playback-state",
-                                room.getRoomName(),
-                                room.getUserName(),
-                                0)
-                                .setPlaying(false)
-                                .setTrackUrl(currentTrack.getFileUrl())
-                                .setPosition((double) 0)
-                                .build();
-                    }
-                }else{
-                    binding.containerNoMusic.setVisibility(View.VISIBLE);
-                    binding.audioPlayerView.setVisibility(View.GONE);
-                }
-
-                if (group.getMembers() != null && !group.getMembers().isEmpty()){
-                    for (Member member : group.getMembers()){
-                        if (member.getRole().equalsIgnoreCase("dj")){
-                            binding.djNameTv.setText(member.getName());
-                            binding.djEmailTv.setText(member.getRole());
-                            djGroup = member;
-                            group.getMembers().remove(member);
-                            break;
-                        }
-                    }
-                    if (iAmOwner){
-                        binding.statusOnlineIv.setImageTintList(ContextCompat.
-                                getColorStateList(requireContext(), R.color.green_success));
-                    }
-                    adapter.setMembers(group.getMembers());
-                    if (group.getMembers().isEmpty()){
-                        binding.separation.setVisibility(View.GONE);
-                    }
-                } else if (group.getMembers() != null && group.getMembers().isEmpty()) {
-                    binding.separation.setVisibility(View.GONE);
-                }
-
-                binding.codeGroupValue.setText(group.getCode());
-            });
-        }
 
         binding.addMemberBtn.setOnClickListener(view2 -> {
-            MessagesUtils.showAddMemberLayout(requireActivity(), email -> {
-                addMember(email);
-            });
+            MessagesUtils.showAddMemberLayout(requireActivity(), this::addMember);
         });
     }
 
@@ -310,18 +319,26 @@ public class GroupAdminFragment extends Fragment {
                 PlaybackEvent.UsersConnected remoteState =
                         (PlaybackEvent.UsersConnected) playbackEvent;
                 JSONArray usersConnected = remoteState.getUsersConnected();
+                Log.d(TAG, "observeEvents: UsersConnected");
                 if (usersConnected != null) {
+                    List<Member> usersOnline = new ArrayList<>();
                     for (int i = 0; i < usersConnected.length(); i++) {
                         JSONObject user = usersConnected.optJSONObject(i);
                         if (user == null) continue;
                         String userName = user.optString("userName", "");
+                        String userId = user.optString("userId", "");
                         boolean isHost = user.optBoolean("isHost", false);
 
                         if (!iAmOwner && isHost) {
                             binding.statusOnlineIv.setImageTintList(ContextCompat.getColorStateList(requireContext(),
                                     R.color.green_success));
                         } else {
-                            adapter.setMemberConnected(userName, true);
+                            Member member = adapter.getUserConnected(userName, true);
+                            if (member != null){
+                                Log.d(TAG, "ENTRY IN OBSERVE EVENTS: ");
+                                adapter.addMember(member);
+                                adapterOffline.removeUserIfExists(userId);
+                            }
                         }
                     }
                 }
@@ -332,8 +349,6 @@ public class GroupAdminFragment extends Fragment {
 
     private void handleRemoteParticipantEvent(PlaybackEvent.RemoteParticipantEvent event){
         if (event instanceof PlaybackEvent.RemoteParticipantEvent.UserJoined){
-            PlaybackEvent.RemoteParticipantEvent.UserJoined userJoined = (PlaybackEvent.RemoteParticipantEvent.UserJoined) event;
-
             if (iAmOwner){
                 viewModel.processInput(new PlaybackViewEvent.ChangeState(state));
             }
@@ -343,12 +358,16 @@ public class GroupAdminFragment extends Fragment {
             JSONObject user = userJoined.getUser();
             if (user == null) return;
             String userName = user.optString("userName", "");
+            String userId = user.optString("userId", "");
             boolean isHost = user.optBoolean("isHost", false);
             if (isHost){
-                binding.statusOnlineIv.setImageTintList(ContextCompat.
-                        getColorStateList(requireContext(), R.color.green_success));
+                binding.statusOnlineIv.setImageTintList(ContextCompat.getColorStateList(requireContext(), R.color.green_success));
             }else{
-                adapter.setMemberConnected(userName, true);
+                Member member = adapter.getUserConnected(userName, true);
+                if (member != null){
+                    adapter.addMember(member);
+                    adapterOffline.removeUserIfExists(userId);
+                }
             }
         }else if (event instanceof PlaybackEvent.RemoteParticipantEvent.ChangeRemoteState){
             PlaybackEvent.RemoteParticipantEvent.ChangeRemoteState remoteState =
@@ -356,15 +375,19 @@ public class GroupAdminFragment extends Fragment {
 
             PlaybackState remote = remoteState.getState();
 
+//            audioPlayerView.setStartPosition(remote.getPosition().intValue());
             if (currentTrack == null && remote.getTrackUrl() != null){
                 if (state != null && !remote.getTrackUrl().equalsIgnoreCase(state.getTrackUrl())){
-                    audioPlayerView.prepareAudio(remote.getTrackUrl(), iAmOwner);
+
+                    Log.d(TAG, "PREPARANDO NUEVO AUDIO!!!!!!!!: ");
+                    audioPlayerView.prepareAudio(remote.getTrackUrl());
                     binding.containerNoMusic.setVisibility(View.GONE);
                     binding.audioPlayerView.setVisibility(View.VISIBLE);
                 }
             }
 
             if (audioPlayerView.getMediaPlayer() == null || !audioPlayerView.isPrepared()) {
+                Log.d(TAG, "MEDIA PLAYER NULL OR NOT PREPARED: ");
                 return;
             }
 
@@ -378,8 +401,6 @@ public class GroupAdminFragment extends Fragment {
                             .setPosition(remote.getPosition())
                             .build();
                 }
-
-                audioPlayerView.setProgress((int) state.getTimestamp());
             }
 
             boolean shouldPlay = state.isPlaying();
@@ -394,7 +415,9 @@ public class GroupAdminFragment extends Fragment {
             }
 
             Log.d(TAG, "SYNC REMOTE -> playing=" + shouldPlay);
+            Log.d(TAG, "POSITION " + remote.getPosition());
 
+            audioPlayerView.setProgress((int) (remote.getPosition() * 1000));
 
         }
     }
@@ -430,9 +453,6 @@ public class GroupAdminFragment extends Fragment {
                     if (body != null) {
                         if (body.isStatus() && body.getMember() != null) {
                             adapter.addMember(body.getMember());
-                            if (adapter.getMembers().isEmpty()){
-                                binding.separation.setVisibility(View.VISIBLE);
-                            }
                         } else {
                             if (body.getError() != null) {
                                 MessagesUtils.showErrorDialog(requireActivity(), body.getError());
@@ -469,17 +489,18 @@ public class GroupAdminFragment extends Fragment {
 
                             binding.containerNoMusic.setVisibility(View.GONE);
                             binding.audioPlayerView.setVisibility(View.VISIBLE);
-                            audioPlayerView.prepareAudio(body.getTrack().getFileUrl(), false);
+                            audioPlayerView.prepareAudio(body.getTrack().getFileUrl());
 
                             if (state == null){
                                 state = new PlaybackState.Builder(
                                         "playback-state",
                                         room.getRoomName(),
                                         room.getUserName(),
-                                        0)
+                                        0,
+                                        0.0)
                                         .setPlaying(false)
                                         .setTrackUrl(body.getTrack().getFileUrl())
-                                        .setPosition((double) 0)
+                                        .setPosition(0.0)
                                         .build();
 
                             }

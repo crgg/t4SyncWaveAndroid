@@ -1,6 +1,7 @@
 package com.t4app.t4syncwave.viewmodel;
 
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.t4app.t4syncwave.PermissionUtil;
@@ -18,10 +19,9 @@ public class PlaybackViewModel extends ViewModel implements PlaybackEventListene
 
     private Room room;
 
-    public PlaybackViewModel(PlaybackManager playbackManager, PermissionUtil permissionUtil) {
-        this.playbackManager = playbackManager;
-        this.permissionUtil = permissionUtil;
-        this.playbackManager.setListener(this);
+    public PlaybackViewModel() {
+        this.playbackManager = new PlaybackManager();
+        playbackManager.setListener(this);
     }
 
     public void sendEvent(PlaybackEvent event){

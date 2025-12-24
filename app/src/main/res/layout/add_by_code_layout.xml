@@ -75,10 +75,11 @@
                         android:layout_width="match_parent"
                         android:layout_height="40dp"
                         android:textColor="@color/text_color"
+                        android:maxLength="6"
                         android:paddingVertical="8dp"
-                        android:hint="Group Code"
+                        android:hint="@string/group_code"
                         android:textColorHint="@color/gray_hint"
-                        android:inputType="text|textEmailAddress"
+                        android:inputType="textCapCharacters"
                         android:textSize="15sp"/>
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>

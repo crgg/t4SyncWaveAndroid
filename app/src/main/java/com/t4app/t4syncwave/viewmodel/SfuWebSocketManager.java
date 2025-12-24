@@ -27,7 +27,6 @@ public class SfuWebSocketManager {
             joinJson.put("userId", room.getUserId());
             joinJson.put("role", room.getRole());
 
-            Log.d(TAG, "JOIN enviado: " + joinJson);
             sfuClient.send(joinJson.toString());
         } catch (Exception e) {
             Log.e(TAG, "Error creando/enviando JOIN", e);
@@ -44,7 +43,6 @@ public class SfuWebSocketManager {
 //            json.put("userName", room.getUserName());
 
             sfuClient.send(json.toString());
-            Log.d(TAG, "LEFT enviado: " + json);
         } catch (Exception e) {
             Log.e(TAG, "Error creando/enviando LEFT", e);
         }
@@ -55,13 +53,13 @@ public class SfuWebSocketManager {
             JSONObject json = new JSONObject();
             json.put("type", state.getType());
             json.put("room", state.getRoom());
-            json.put("trackUrl", state.getTrackUrl());//TODO
+            json.put("trackUrl", state.getTrackUrl());
             json.put("userName", state.getUserName());
             json.put("timestamp", state.getTimestamp());
-
-            if (state.getPosition() != null) {
-                json.put("position", state.getPosition());
-            }
+            json.put("position", state.getPosition());
+            json.put("trackArtist", "");
+            json.put("trackTitle", "");
+            json.put("duration", 0);
 
             json.put("isPlaying", state.isPlaying());
             sfuClient.send(json.toString());
@@ -73,7 +71,8 @@ public class SfuWebSocketManager {
 
 
     private boolean canSend() {
-        return sfuClient != null && sfuClient.isConnected();
+        Log.d(TAG, "ENTRY IN CAN SEND: ");
+        return sfuClient != null && sfuClient.isConnected;
     }
 
 }

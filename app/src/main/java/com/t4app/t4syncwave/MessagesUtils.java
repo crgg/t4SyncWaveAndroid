@@ -5,6 +5,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -177,6 +179,26 @@ public class MessagesUtils {
             TextInputEditText groupCodeValue = dialogView.findViewById(R.id.groupCodeValue);
             MaterialButton addGroupBtn = dialogView.findViewById(R.id.btnJoin);
             MaterialButton cancelBtn = dialogView.findViewById(R.id.btnCancel);
+
+            groupCodeValue.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    String text = s.toString().toUpperCase();
+                    if (!s.toString().equals(text)) {
+                        groupCodeValue.removeTextChangedListener(this);
+                        groupCodeValue.setText(text);
+                        groupCodeValue.setSelection(text.length());
+                        groupCodeValue.addTextChangedListener(this);
+                    }
+                }
+            });
+
 
             addGroupBtn.setOnClickListener(view -> {
                 String nameGroup = groupCodeValue.getText().toString();

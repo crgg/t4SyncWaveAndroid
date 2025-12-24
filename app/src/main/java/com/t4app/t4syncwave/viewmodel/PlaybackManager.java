@@ -1,6 +1,5 @@
 package com.t4app.t4syncwave.viewmodel;
 
-import android.content.Context;
 import android.util.Log;
 
 import com.t4app.t4syncwave.conection.ApiConfig;
@@ -24,23 +23,20 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
         this.listener = listener;
     }
 
-    public PlaybackManager(Context context) {
-        sfuWebSocketClient = new SfuWebSocketClient(this);
+    public PlaybackManager() {
+        sfuWebSocketClient = new SfuWebSocketClient();
+        sfuWebSocketClient.setCallback(this);
         socketManager = new SfuWebSocketManager(sfuWebSocketClient);
-
         room = new Room();
-
     }
 
     public void connectRoom(Room roomState){
         if (sfuWebSocketClient != null){
-            if (!sfuWebSocketClient.isConnected()){
-                room.setRoomName(roomState.getRoomName());
-                room.setUserName(roomState.getUserName());
-                room.setRole(roomState.getRole());
-                room.setUserId(roomState.getUserId());
-                sfuWebSocketClient.connect(ApiConfig.WEB_SOCKET_URL);
-            }
+            room.setRoomName(roomState.getRoomName());
+            room.setUserName(roomState.getUserName());
+            room.setRole(roomState.getRole());
+            room.setUserId(roomState.getUserId());
+            sfuWebSocketClient.connect(ApiConfig.WEB_SOCKET_URL);
         }
     }
 
@@ -160,25 +156,25 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
             String userName = json.optString("userName");
             String trackUrl = json.optString("trackUrl");
 
-            Double position = json.has("position") && !json.isNull("position")
-                    ? json.optDouble("position") : null;
+//            if (!roomName.equalsIgnoreCase(room.getRoomName())) {
+//                return;
+//            }
+//
+//            if (userName.equalsIgnoreCase(room.getUserName())) {
+//                return;
+//            }
+
+            double position = json.optDouble("position");
 
             boolean isPlaying = json.optBoolean("isPlaying", false);
             int timestamp = json.optInt("timestamp", 0);
 
-            PlaybackState state = new PlaybackState.Builder(type, roomName, userName, timestamp)
-                            .setPosition(position)
+            PlaybackState state = new PlaybackState.Builder(type, roomName, userName, timestamp, position)
                             .setPlaying(isPlaying)
                             .setTrackUrl(trackUrl)
                             .build();
 
-            if (!state.getRoom().equalsIgnoreCase(room.getRoomName())) {
-                return;
-            }
 
-            if (state.getUserName().equalsIgnoreCase(room.getUserName())) {
-                return;
-            }
             Log.d(TAG, "IN HANDLE CHANGE STATE: ");
             sendPlaybackEvent(new PlaybackEvent.RemoteParticipantEvent.ChangeRemoteState(state));
 
@@ -218,23 +214,22 @@ public class PlaybackManager implements SfuWebSocketClient.Callback{
     public void onConnected() {
         Log.d(TAG, "onConnected IN ROOM");
         socketManager.sendJoin(room);
-
         sendPlaybackEvent(new PlaybackEvent.Connected(room));
     }
 
     @Override
     public void onDisconnected() {
-
+        Log.e(TAG, "DISCONNEETTTT SOCKET !!!!!!: ");
     }
 
     @Override
     public void onMessage(String text) {
-        Log.d(TAG, "MESSAGE RECEIVED: " + text);
+        Log.d(TAG, "MESSAGE RECEIVED " + text);
         handleWebSocketMessage(text);
     }
 
     @Override
     public void onFailure(Throwable t) {
-
+        Log.e(TAG, "FAILUREEE SOCKET !!!!!!: ");
     }
 }

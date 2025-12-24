@@ -24,5 +24,6 @@ public class ListenersUtils {
         void onPlayRequested();
         void onPauseRequested();
         void onChangeSeek(int progress);
+        void onChangePosition(int progress);
     }
 }

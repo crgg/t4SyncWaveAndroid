@@ -82,6 +82,11 @@ public class T4SyncWaveMainActivity extends AppCompatActivity {
             public void onChangeSeek(int progress) {
 
             }
+
+            @Override
+            public void onChangePosition(int progress) {
+
+            }
         });
 
     }

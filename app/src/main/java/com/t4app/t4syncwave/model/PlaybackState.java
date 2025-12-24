@@ -28,15 +28,15 @@ public final class PlaybackState {
         private Double position;
         private boolean isPlaying;
         private double timestamp;
-        private String trackUrl; // 🆕
+        private String trackUrl;
 
-        public Builder(String type, String room, String userName, double timestamp) {
+        public Builder(String type, String room, String userName, double timestamp, double position) {
             this.type = type;
             this.room = room;
             this.userName = userName;
             this.timestamp = timestamp;
+            this.position = position;
             this.isPlaying = false;
-            this.position = null;
             this.trackUrl = null;
         }
 
@@ -81,11 +81,11 @@ public final class PlaybackState {
     }
 
     public Builder copy() {
-        return new Builder(this.type, this.room, this.userName, this.timestamp)
+        return new Builder(this.type, this.room, this.userName, this.timestamp, this.position)
                 .setPosition(this.position)
                 .setPlaying(this.isPlaying)
                 .setTimestamp(this.timestamp)
-                .setTrackUrl(this.trackUrl); // 🆕
+                .setTrackUrl(this.trackUrl);
     }
 
     public String getType() { return type; }
@@ -94,5 +94,19 @@ public final class PlaybackState {
     public Double getPosition() { return position; }
     public boolean isPlaying() { return isPlaying; }
     public double getTimestamp() { return timestamp; }
-    public String getTrackUrl() { return trackUrl; } // 🆕
+    public String getTrackUrl() { return trackUrl; }
+
+    @Override
+    public String toString() {
+        return "PlaybackState{" +
+                "type='" + type + '\'' +
+                ", room='" + room + '\'' +
+                ", userName='" + userName + '\'' +
+                ", position=" + (position != null ? position : "null") +
+                ", isPlaying=" + isPlaying +
+                ", timestamp=" + timestamp +
+                ", trackUrl='" + trackUrl + '\'' +
+                '}';
+    }
+
 }

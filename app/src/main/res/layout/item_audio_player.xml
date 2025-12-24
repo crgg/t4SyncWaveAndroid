@@ -67,50 +67,76 @@
             android:max="100"
             android:progress="0" />
 
-        <LinearLayout
-            android:orientation="horizontal"
-            android:gravity="center"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/containerActions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
             <androidx.appcompat.widget.AppCompatImageButton
                 android:id="@+id/repeatBtn"
-                android:src="@drawable/ic_no_repeat"
-                android:background="@null"
                 android:layout_width="46dp"
-                android:layout_marginStart="5dp"
-                android:layout_marginEnd="35dp"
-                android:layout_height="46dp"/>
+                android:layout_height="46dp"
+                android:background="@null"
+                app:layout_constraintEnd_toStartOf="@id/backward15"
+                app:layout_constraintHorizontal_bias="0.2"
+                android:src="@drawable/ic_no_repeat"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
 
             <androidx.appcompat.widget.AppCompatImageButton
                 android:id="@+id/backward15"
-                android:src="@drawable/ic_backward_15"
-                android:background="@null"
                 android:layout_width="46dp"
-                android:layout_marginEnd="45dp"
-                android:layout_height="46dp"/>
-
+                android:layout_height="46dp"
+                android:background="@null"
+                android:src="@drawable/ic_backward_15"
+                android:layout_marginEnd="20dp"
+                app:layout_constraintEnd_toStartOf="@id/btnPlayPause"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
 
             <androidx.appcompat.widget.AppCompatImageButton
                 android:id="@+id/btnPlayPause"
-                android:src="@drawable/ic_play"
-                android:background="@null"
-                android:layout_marginEnd="40dp"
                 android:layout_width="46dp"
-                android:layout_height="46dp"/>
-
+                android:layout_height="46dp"
+                android:background="@null"
+                android:src="@drawable/ic_play"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintHorizontal_chainStyle="packed"/>
 
             <androidx.appcompat.widget.AppCompatImageButton
                 android:id="@+id/forward15"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:background="@null"
                 android:src="@drawable/ic_forward_15"
+                android:layout_marginStart="20dp"
+                app:layout_constraintStart_toEndOf="@id/btnPlayPause"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+        <LinearLayout
+            android:id="@+id/containerMute"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/btnMute"
+                android:visibility="visible"
+                android:src="@drawable/ic_sound"
                 android:background="@null"
                 android:layout_width="46dp"
                 android:layout_height="46dp"/>
 
-            <View
-                android:layout_weight="1"
-                android:layout_width="0dp"
-                android:layout_height="0dp"/>
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

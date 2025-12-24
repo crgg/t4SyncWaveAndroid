@@ -51,7 +51,7 @@ public class RetrofitClient {
                         ? response.peekBody(Long.MAX_VALUE).string()
                         : "";
                 Log.e(TAG, "HTTP Error: " + response.code() + " - " + body);
-                throw new IOException("HTTP Error: " + response.code());
+//                throw new IOException("HTTP Error: " + response.code());
             }
             return response;
         };
