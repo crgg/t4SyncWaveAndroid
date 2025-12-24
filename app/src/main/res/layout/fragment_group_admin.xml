@@ -224,6 +224,7 @@
             <TextView
                 android:id="@+id/membersCountTv"
                 android:text="@string/online"
+                android:visibility="gone"
                 android:layout_marginStart="10dp"
                 android:textColor="@color/green_success"
                 android:textSize="14sp"
@@ -243,6 +244,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
+                    android:visibility="gone"
                     android:background="@color/background_item"
                     android:padding="8dp"
                     android:gravity="center_vertical">
@@ -292,7 +294,7 @@
 
             <TextView
                 android:id="@+id/offlineText"
-                android:text="Offline"
+                android:text="@string/listeners"
                 android:layout_marginStart="10dp"
                 android:textColor="@color/gray_hint"
                 android:textSize="14sp"
